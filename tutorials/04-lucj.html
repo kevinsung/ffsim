@@ -90,8 +90,8 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-converged SCF energy = -77.4456267643963
-CASCI E = -77.6290254326717  E(CI) = -3.57322412553862  S^2 = 0.0000000
+converged SCF energy = -77.4456267643962
+CASCI E = -77.6290254326717  E(CI) = -3.57322412553863  S^2 = 0.0000000
 </pre></div></div>
 </div>
 <section id="The-unitary-cluster-Jastrow-(UCJ)-ansatz">
@@ -142,8 +142,8 @@ have two sets of matrices for describing the diagonal Coulomb operators: “alph
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.49387212754479  E_corr = -0.04824536314851384
-Energy at initialialization: -77.46975600021685
+E(CCSD) = -77.49387212754468  E_corr = -0.04824536314851274
+Energy at initialialization: -77.46975600021678
 </pre></div></div>
 </div>
 <p>To facilitate variational optimization of the ansatz, <code class="docutils literal notranslate"><span class="pre">UCJOperator</span></code> implements methods for conversion to and from a vector of real-valued parameters. The precise relation between a parameter vector and the matrices of the UCJ operator is somewhat complicated. In short, the parameter vector stores the entries of the UCJ matrices in a non-redundant way (for the orbital rotations, the parameter vector actually stores the entries of their generators.)</p>
@@ -182,12 +182,12 @@ Number of parameters: 72
   message: STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT
   success: False
    status: 1
-      fun: -77.51585704748993
-        x: [-1.452e-01  1.878e-01 ...  2.831e-01  5.311e-01]
+      fun: -77.51598217154871
+        x: [-1.412e-01  1.960e-01 ...  8.755e-02 -2.054e+00]
       nit: 9
-      jac: [ 4.118e-03 -8.448e-03 ... -4.353e-03  4.422e-03]
-     nfev: 1168
-     njev: 16
+      jac: [ 5.696e-03 -7.863e-03 ... -9.024e-04  1.071e-03]
+     nfev: 1314
+     njev: 18
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
 </pre></div></div>
 </div>
@@ -246,10 +246,10 @@ Number of parameters: 46
   message: STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT
   success: False
    status: 1
-      fun: -77.460724406556
-        x: [-3.831e-01  8.034e-02 ...  3.571e-01  9.218e-01]
-      nit: 17
-      jac: [-4.223e-03  1.222e-04 ...  1.664e-03  1.685e-03]
+      fun: -77.46135053284186
+        x: [-3.910e-01  1.118e-01 ... -1.222e-01 -1.710e+00]
+      nit: 16
+      jac: [-2.848e-03 -7.688e-04 ... -1.769e-03  1.540e-03]
      nfev: 1034
      njev: 22
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
