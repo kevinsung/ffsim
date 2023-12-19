@@ -91,7 +91,7 @@
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 converged SCF energy = -77.4456267643962
-CASCI E = -77.6290254326717  E(CI) = -3.57322412553863  S^2 = 0.0000000
+CASCI E = -77.6290254326718  E(CI) = -3.57322412553863  S^2 = 0.0000000
 </pre></div></div>
 </div>
 <section id="The-unitary-cluster-Jastrow-(UCJ)-ansatz">
@@ -133,7 +133,7 @@ have two sets of matrices for describing the diagonal Coulomb operators: “alph
 <span class="c1"># Compute the energy ⟨ψ|H|ψ⟩ of the ansatz state</span>
 <span class="n">hamiltonian</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">linear_operator</span><span class="p">(</span><span class="n">mol_hamiltonian</span><span class="p">,</span> <span class="n">norb</span><span class="o">=</span><span class="n">norb</span><span class="p">,</span> <span class="n">nelec</span><span class="o">=</span><span class="n">nelec</span><span class="p">)</span>
 <span class="n">energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vdot</span><span class="p">(</span><span class="n">ansatz_state</span><span class="p">,</span> <span class="n">hamiltonian</span> <span class="o">@</span> <span class="n">ansatz_state</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy at initialialization: </span><span class="si">{</span><span class="n">energy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy at initialization: </span><span class="si">{</span><span class="n">energy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -142,12 +142,12 @@ have two sets of matrices for describing the diagonal Coulomb operators: “alph
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.49387212754473  E_corr = -0.04824536314851266
-Energy at initialialization: -77.46975600021672
+E(CCSD) = -77.49387212754473  E_corr = -0.04824536314851416
+Energy at initialization: -77.46975600021668
 </pre></div></div>
 </div>
 <p>To facilitate variational optimization of the ansatz, <code class="docutils literal notranslate"><span class="pre">UCJOperator</span></code> implements methods for conversion to and from a vector of real-valued parameters. The precise relation between a parameter vector and the matrices of the UCJ operator is somewhat complicated. In short, the parameter vector stores the entries of the UCJ matrices in a non-redundant way (for the orbital rotations, the parameter vector actually stores the entries of their generators.)</p>
-<p>The following code cell shows how one can define an objective function that takes as input a parameter vector and outputs the energy of the associated ansatz state, and then optimize this objective function using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>. Here, we set a small limit on the number of function evaluations; increase the value if you would like to run it to convergence.</p>
+<p>The following code cell shows how one can define an objective function that takes as input a parameter vector and outputs the energy of the associated ansatz state, and then optimize this objective function using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>. Here, we set a small limit on the number of iterations; increase the value if you would like to run it to convergence.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -165,7 +165,7 @@ Energy at initialialization: -77.46975600021672
 
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
-    <span class="n">fun</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">to_parameters</span><span class="p">(),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;L-BFGS-B&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">maxfun</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">fun</span><span class="p">,</span> <span class="n">x0</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">to_parameters</span><span class="p">(),</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;L-BFGS-B&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of parameters: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -179,15 +179,15 @@ Energy at initialialization: -77.46975600021672
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Number of parameters: 72
-  message: STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT
+  message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.51538253306936
-        x: [-1.562e-01  1.931e-01 ...  7.250e-02  5.768e-01]
-      nit: 9
-      jac: [-7.562e-03 -3.453e-03 ...  8.555e-04  6.594e-04]
-     nfev: 1095
-     njev: 15
+      fun: -77.50960164349318
+        x: [-1.501e-01  1.900e-01 ...  3.208e-01  5.935e-01]
+      nit: 5
+      jac: [-1.062e-03 -9.862e-04 ...  3.141e-04 -3.766e-04]
+     nfev: 584
+     njev: 8
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
 </pre></div></div>
 </div>
@@ -230,7 +230,7 @@ connectivity. The constraints are specified by a list of indices indicating whic
         <span class="n">alpha_alpha_indices</span><span class="o">=</span><span class="n">alpha_alpha_indices</span><span class="p">,</span> <span class="n">alpha_beta_indices</span><span class="o">=</span><span class="n">alpha_beta_indices</span>
     <span class="p">),</span>
     <span class="n">method</span><span class="o">=</span><span class="s2">&quot;L-BFGS-B&quot;</span><span class="p">,</span>
-    <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">maxfun</span><span class="o">=</span><span class="mi">1000</span><span class="p">),</span>
+    <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">maxiter</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of parameters: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
@@ -243,16 +243,123 @@ connectivity. The constraints are specified by a list of indices indicating whic
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Number of parameters: 46
-  message: STOP: TOTAL NO. of f AND g EVALUATIONS EXCEEDS LIMIT
+  message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.45961331814827
-        x: [-3.330e-01  7.880e-02 ... -7.676e-02  9.012e-01]
-      nit: 16
-      jac: [-6.665e-04  5.699e-04 ... -1.388e-03 -8.953e-05]
-     nfev: 1034
-     njev: 22
+      fun: -77.45741097296167
+        x: [-4.102e-01  8.186e-02 ...  3.399e-01  6.513e-01]
+      nit: 5
+      jac: [ 1.856e-03 -1.421e-06 ... -1.251e-04 -8.953e-05]
+     nfev: 423
+     njev: 9
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
+</pre></div></div>
+</div>
+</section>
+<section id="Optimize-with-the-linear-method">
+<h2>Optimize with the linear method<a class="headerlink" href="#Optimize-with-the-linear-method" title="Link to this heading">¶</a></h2>
+<p>ffsim includes an implementation of the <a class="reference external" href="https://arxiv.org/abs/1412.0490v2">“linear method”</a> for optimization of a variational wavefunction. The linear method often converges faster than a standard optimization algorithm like L-BFGS-B. The interface is similar to that of <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>, the main difference being that instead of passing a callable that directly returns the function value to be optimized, you pass two objects: a callable that returns the wavefunction, and the
+Hamiltonian representing the energy to be optimized as a <code class="docutils literal notranslate"><span class="pre">LinearOperator</span></code>. The code cell below shows how to use the linear method to optimize the LUCJ ansatz from the previous example. It also shows how you can use an optional callback function to save intermediate results of the optimization.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">ffsim.optimize</span> <span class="kn">import</span> <span class="n">minimize_linear_method</span>
+
+
+<span class="c1"># Define function that converts a list of parameters to the corresponding state vector</span>
+<span class="k">def</span> <span class="nf">params_to_vec</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">operator</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">UCJOperator</span><span class="o">.</span><span class="n">from_parameters</span><span class="p">(</span>
+        <span class="n">x</span><span class="p">,</span>
+        <span class="n">norb</span><span class="o">=</span><span class="n">norb</span><span class="p">,</span>
+        <span class="n">n_reps</span><span class="o">=</span><span class="n">n_reps</span><span class="p">,</span>
+        <span class="n">alpha_alpha_indices</span><span class="o">=</span><span class="n">alpha_alpha_indices</span><span class="p">,</span>
+        <span class="n">alpha_beta_indices</span><span class="o">=</span><span class="n">alpha_beta_indices</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">apply_unitary</span><span class="p">(</span><span class="n">reference_state</span><span class="p">,</span> <span class="n">operator</span><span class="p">,</span> <span class="n">norb</span><span class="o">=</span><span class="n">norb</span><span class="p">,</span> <span class="n">nelec</span><span class="o">=</span><span class="n">nelec</span><span class="p">)</span>
+
+
+<span class="c1"># Define a callback function used to save optimization information (this is optional)</span>
+<span class="n">info</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">intermediate_result</span><span class="p">:</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">OptimizeResult</span><span class="p">):</span>
+    <span class="c1"># The callback function is called after each iteration. It accepts</span>
+    <span class="c1"># an OptimizeResult object storing the parameters and function value at</span>
+    <span class="c1"># the current iteration, and possibly other information</span>
+    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intermediate_result</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">info</span><span class="p">[</span><span class="s2">&quot;fun&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intermediate_result</span><span class="o">.</span><span class="n">fun</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">intermediate_result</span><span class="p">,</span> <span class="s2">&quot;jac&quot;</span><span class="p">):</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;jac&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intermediate_result</span><span class="o">.</span><span class="n">jac</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">intermediate_result</span><span class="p">,</span> <span class="s2">&quot;regularization&quot;</span><span class="p">):</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;regularization&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intermediate_result</span><span class="o">.</span><span class="n">regularization</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">intermediate_result</span><span class="p">,</span> <span class="s2">&quot;variation&quot;</span><span class="p">):</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;variation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intermediate_result</span><span class="o">.</span><span class="n">variation</span><span class="p">)</span>
+
+
+<span class="c1"># Optimize with the linear method</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">minimize_linear_method</span><span class="p">(</span>
+    <span class="n">params_to_vec</span><span class="p">,</span>
+    <span class="n">hamiltonian</span><span class="p">,</span>
+    <span class="n">x0</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">to_parameters</span><span class="p">(</span>
+        <span class="n">alpha_alpha_indices</span><span class="o">=</span><span class="n">alpha_alpha_indices</span><span class="p">,</span> <span class="n">alpha_beta_indices</span><span class="o">=</span><span class="n">alpha_beta_indices</span>
+    <span class="p">),</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Print some information</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of parameters: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">fun</span><span class="p">,</span> <span class="n">jac</span><span class="p">,</span> <span class="n">regularization</span><span class="p">,</span> <span class="n">variation</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+    <span class="nb">zip</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s2">&quot;fun&quot;</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;jac&quot;</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;regularization&quot;</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;variation&quot;</span><span class="p">])</span>
+<span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Iteration </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Energy: </span><span class="si">{</span><span class="n">fun</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Norm of gradient: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">jac</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Regularization hyperparameter: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">regularization</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    Variation hyperparameter: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">variation</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Number of parameters: 46
+ message: Stop: Total number of iterations reached limit.
+ success: False
+     fun: -77.54401822636945
+       x: [-2.217e+00  8.296e-02 ...  2.162e-01 -6.798e-01]
+     nit: 5
+     jac: [ 1.942e-02  6.087e-03 ... -4.533e-03  1.164e-02]
+    nfev: 880
+    njev: 5
+  nlinop: 650
+
+Iteration 1
+    Energy: -77.43972212295958
+    Norm of gradient: 0.13642490852646375
+    Regularization hyperparameter: 0.00021603078788881545
+    Variation hyperparameter: 0.6481048664135274
+Iteration 2
+    Energy: -77.4745837655897
+    Norm of gradient: 0.06493457006981311
+    Regularization hyperparameter: 0.011180231505629306
+    Variation hyperparameter: 0.27425076090206013
+Iteration 3
+    Energy: -77.50480122351631
+    Norm of gradient: 0.08642414513274113
+    Regularization hyperparameter: 0.0035319868557619435
+    Variation hyperparameter: 0.274559241047499
+Iteration 4
+    Energy: -77.52902093865703
+    Norm of gradient: 0.12636673683821278
+    Regularization hyperparameter: 0.008472981288503054
+    Variation hyperparameter: 0.8934210445944022
 </pre></div></div>
 </div>
 </section>
@@ -287,6 +394,7 @@ Number of parameters: 46
 <li class="toctree-l1"><a class="reference internal" href="../api/ffsim.html">ffsim</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/ffsim.contract.html">ffsim.contract</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/ffsim.linalg.html">ffsim.linalg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/ffsim.optimize.html">ffsim.optimize</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/ffsim.random.html">ffsim.random</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/ffsim.testing.html">ffsim.testing</a></li>
 </ul>
