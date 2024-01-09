@@ -278,7 +278,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-converged SCF energy = -77.4456267643962
+converged SCF energy = -77.4456267643963
 </pre></div></div>
 </div>
 <p>Here, <code class="docutils literal notranslate"><span class="pre">mol_hamiltonian</span></code> is an instance of <code class="docutils literal notranslate"><span class="pre">MolecularHamiltonian</span></code>, a dataclass that stores the one- and two-body tensors, and <code class="docutils literal notranslate"><span class="pre">df_hamiltonian</span></code> is an instance of <code class="docutils literal notranslate"><span class="pre">DoubleFactorizedHamiltonian</span></code>, a dataclass that stores the updated one-body-tensor, diagonal Coulomb matrices, and orbital rotations. In the cell below, we print out the shapes of the tensors describing the original and double-factorized representations.</p>
@@ -489,7 +489,7 @@ Hartree Fock energy: -77.44562676439628
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Fidelity of evolved state w.r.t. initial state: 0.9315062301402767
+Fidelity of evolved state w.r.t. initial state: 0.931506230139646
 </pre></div></div>
 </div>
 <p>Now, let’s test our implementation.</p>
@@ -516,7 +516,7 @@ Fidelity of evolved state w.r.t. initial state: 0.9315062301402767
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Fidelity of Trotter-evolved state with exact state: 0.992852766821652
+Fidelity of Trotter-evolved state with exact state: 0.9928527668210178
 </pre></div></div>
 </div>
 <p>The fidelity of the final result can be improved by increasing the number of Trotter steps.</p>
@@ -543,7 +543,7 @@ Fidelity of Trotter-evolved state with exact state: 0.992852766821652
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Fidelity of Trotter-evolved state with exact state: 0.9999320851290109
+Fidelity of Trotter-evolved state with exact state: 0.9999320851283635
 </pre></div></div>
 </div>
 <p>As mentioned above, ffsim already includes functionality for Trotter simulation of double-factorized Hamiltonians. The implementation in ffsim includes higher-order Trotter-Suzuki formulas. The first-order asymmetric formula that we just implemented corresponds to <code class="docutils literal notranslate"><span class="pre">order=0</span></code> in ffsim’s implementation. <code class="docutils literal notranslate"><span class="pre">order=1</span></code> corresponds to the first-order symmetric (commonly known as the second-order) formula, <code class="docutils literal notranslate"><span class="pre">order=2</span></code> corresponds to the second-order symmetric (fourth-order) formula, and so on.</p>
@@ -572,7 +572,7 @@ Fidelity of Trotter-evolved state with exact state: 0.9999320851290109
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Fidelity of Trotter-evolved state with exact state: 0.9999320851290109
+Fidelity of Trotter-evolved state with exact state: 0.9999320851283635
 </pre></div></div>
 </div>
 <p>A higher order formula achieves a higher fidelity with fewer Trotter steps:</p>
@@ -600,7 +600,7 @@ Fidelity of Trotter-evolved state with exact state: 0.9999320851290109
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Fidelity of Trotter-evolved state with exact state: 0.9999913261310865
+Fidelity of Trotter-evolved state with exact state: 0.9999913261304396
 </pre></div></div>
 </div>
 </section>
@@ -644,7 +644,14 @@ Fidelity of Trotter-evolved state with exact state: 0.9999913261310865
             
           </div>
           <div class="right-details">
-            
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/qiskit-community/ffsim" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
           </div>
         </div>
         
