@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Entanglement forging" href="05-entanglement-forging.html" /><link rel="prev" title="Diagonal Coulomb operators and double-factorized Trotter simulation" href="03-double-factorized.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2023.09.10 -->
+    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>The local unitary cluster Jastrow (LUCJ) ansatz - ffsim 0.0.22.dev0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -258,7 +258,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-converged SCF energy = -77.4456267643963
+converged SCF energy = -77.4456267643962
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -266,7 +266,7 @@ converged SCF energy = -77.4456267643963
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-CASCI E = -77.6290254326718  E(CI) = -3.57322412553863  S^2 = 0.0000000
+CASCI E = -77.6290254326717  E(CI) = -3.57322412553863  S^2 = 0.0000000
 </pre></div></div>
 </div>
 <section id="The-unitary-cluster-Jastrow-(UCJ)-ansatz">
@@ -321,7 +321,7 @@ have two sets of matrices for describing the diagonal Coulomb operators: “alph
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.49387212754476  E_corr = -0.0482453631485125
+E(CCSD) = -77.49387212754473  E_corr = -0.04824536314851531
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -329,7 +329,7 @@ E(CCSD) = -77.49387212754476  E_corr = -0.0482453631485125
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Energy at initialization: -77.46975600021696
+Energy at initialization: -77.46975600021683
 </pre></div></div>
 </div>
 <p>To facilitate variational optimization of the ansatz, <code class="docutils literal notranslate"><span class="pre">UCJOperator</span></code> implements methods for conversion to and from a vector of real-valued parameters. The precise relation between a parameter vector and the matrices of the UCJ operator is somewhat complicated. In short, the parameter vector stores the entries of the UCJ matrices in a non-redundant way (for the orbital rotations, the parameter vector actually stores the entries of their generators.)</p>
@@ -368,10 +368,10 @@ Number of parameters: 72
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.50964023872
-        x: [-1.478e-01  1.877e-01 ...  3.510e-03  6.464e-01]
+      fun: -77.5096367709807
+        x: [-1.486e-01  1.914e-01 ...  6.524e-03 -1.987e+00]
       nit: 5
-      jac: [ 1.342e-03 -2.123e-03 ... -5.485e-04 -3.183e-04]
+      jac: [-1.185e-03 -1.056e-03 ... -5.528e-04 -2.871e-04]
      nfev: 584
      njev: 8
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
@@ -434,10 +434,10 @@ Number of parameters: 46
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.45741325575133
-        x: [-4.081e-01  8.235e-02 ... -1.939e-02  7.019e-01]
+      fun: -77.45739696740334
+        x: [-4.129e-01  8.311e-02 ... -3.017e-02 -1.936e+00]
       nit: 5
-      jac: [ 1.826e-03 -1.421e-05 ...  5.542e-05 -7.390e-05]
+      jac: [ 6.466e-04 -1.990e-05 ...  4.974e-05 -2.075e-04]
      nfev: 423
      njev: 9
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
@@ -520,34 +520,34 @@ Hamiltonian representing the energy to be optimized as a <code class="docutils l
 Number of parameters: 46
  message: Stop: Total number of iterations reached limit.
  success: False
-     fun: -77.47161496287423
-       x: [-6.021e-01  7.035e-02 ... -2.266e-01  1.002e+00]
+     fun: -77.47070211596943
+       x: [-5.979e-01 -1.451e-02 ... -1.462e-01 -1.711e+00]
      nit: 5
-     jac: [ 7.170e-03 -1.637e-03 ...  3.253e-03 -1.453e-04]
-    nfev: 760
+     jac: [ 6.042e-03 -8.903e-04 ... -9.258e-04 -3.737e-03]
+    nfev: 829
     njev: 5
-  nlinop: 530
+  nlinop: 599
 
 Iteration 1
-    Energy: -77.4568019525768
-    Norm of gradient: 0.015886105849714765
-    Regularization hyperparameter: 0.02431845414285268
-    Variation hyperparameter: 0.4404142995797696
+    Energy: -77.45703827465597
+    Norm of gradient: 0.012995972320804426
+    Regularization hyperparameter: 0.025543814055994554
+    Variation hyperparameter: 0.7055913947471386
 Iteration 2
-    Energy: -77.45781015234653
-    Norm of gradient: 0.010771565666742578
-    Regularization hyperparameter: 0.000399770667151221
-    Variation hyperparameter: 0.4468371543772083
+    Energy: -77.45823245142262
+    Norm of gradient: 0.008325708031992396
+    Regularization hyperparameter: 0.000306280693919374
+    Variation hyperparameter: 0.3607761041347959
 Iteration 3
-    Energy: -77.4578445567613
-    Norm of gradient: 0.010315606294511748
-    Regularization hyperparameter: 1.0392651358417109
-    Variation hyperparameter: 0.4306029725840318
+    Energy: -77.45825247814372
+    Norm of gradient: 0.008136797659659476
+    Regularization hyperparameter: 1.0289867167372873
+    Variation hyperparameter: 0.32528166174399187
 Iteration 4
-    Energy: -77.46193605965877
-    Norm of gradient: 0.025979361630633534
-    Regularization hyperparameter: 0.0026210705753300888
-    Variation hyperparameter: 0.3236550281939055
+    Energy: -77.46375380914404
+    Norm of gradient: 0.026200743346702905
+    Regularization hyperparameter: 0.0027444726417846514
+    Variation hyperparameter: 0.4953986364457138
 </pre></div></div>
 </div>
 </section>
