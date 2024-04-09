@@ -2,48 +2,46 @@
 requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
-[project]
+[tool.poetry]
 name = "ffsim"
-requires-python = ">=3.8"
 version = "0.0.28.dev"
 description = "Faster simulations of fermionic quantum circuits."
+authors = ["The ffsim developers"]
+license = "Apache-2.0"
 readme = "README.md"
-license = { file = "LICENSE" }
+homepage = "https://qiskit-community.github.io/ffsim/"
+repository = "https://github.com/qiskit-community/ffsim"
+documentation = "https://qiskit-community.github.io/ffsim/"
 classifiers = [
     "Programming Language :: Rust",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Physics",
 ]
-dependencies = [
-    "numpy",
-    "opt_einsum",
-    "pyscf >= 2.3.0",
-    "qiskit >= 1.0.0",
-    "scipy",
-    "typing-extensions",
-]
 
-[project.urls]
-Homepage = "https://github.com/qiskit-community/ffsim"
-Documentation = "https://qiskit-community.github.io/ffsim/"
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "^1.26.4"
+opt-einsum = "^3.3.0"
+pyscf = ">=2.3.0"
+qiskit = "^1.0.0"
+scipy = "^1.13.0"
+typing-extensions = "^4.11.0"
 
-[project.optional-dependencies]
-dev = [
-    "coverage",
-    "furo",
-    "maturin",
-    "mypy == 1.8.0",
-    "myst-parser",
-    "nbmake",
-    "nbsphinx",
-    "pre-commit",
-    "pytest == 8.0.0",
-    "qiskit[visualization] >= 1.0.0",
-    "ruff == 0.3.4",
-    "sphinx",
-    "sphinx-autodoc-typehints",
-]
+[tool.poetry.group.dev.dependencies]
+coverage = "^7.4.4"
+furo = "^2024.1.29"
+maturin = "^1.5.1"
+mypy = "^1.9.0"
+myst-parser = "^2.0.0"
+nbmake = "^1.5.3"
+nbsphinx = "^0.9.3"
+pre-commit = "^3.7.0"
+pytest = "^8.1.1"
+qiskit = { extras = ["visualization"], version = "^1.0.0" }
+ruff = "0.3.4"
+Sphinx = "^7.2.6"
+sphinx-autodoc-typehints = "^2.0.0"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
