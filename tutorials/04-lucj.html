@@ -324,7 +324,7 @@ have two sets of matrices for describing the diagonal Coulomb operators: “alph
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.49387212754471  E_corr = -0.0482453631485139
+E(CCSD) = -77.49387212754473  E_corr = -0.04824536314851426
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -332,7 +332,7 @@ E(CCSD) = -77.49387212754471  E_corr = -0.0482453631485139
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Energy at initialization: -77.46975600021666
+Energy at initialization: -77.46975600021693
 </pre></div></div>
 </div>
 <p>To facilitate variational optimization of the ansatz, <code class="docutils literal notranslate"><span class="pre">UCJOperator</span></code> implements methods for conversion to and from a vector of real-valued parameters. The precise relation between a parameter vector and the matrices of the UCJ operator is somewhat complicated. In short, the parameter vector stores the entries of the UCJ matrices in a non-redundant way (for the orbital rotations, the parameter vector actually stores the entries of their generators.)</p>
@@ -371,10 +371,10 @@ Number of parameters: 72
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.509616859378
-        x: [ 1.246e+00 -6.260e-01 ...  8.782e-02  1.382e-01]
+      fun: -77.50963965565609
+        x: [ 1.376e+00 -5.946e-01 ...  8.757e-02  1.396e-01]
       nit: 5
-      jac: [-4.732e-04  1.208e-03 ... -3.799e-03 -2.932e-03]
+      jac: [-1.364e-04  8.072e-04 ... -4.148e-03 -3.070e-03]
      nfev: 584
      njev: 8
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
@@ -437,10 +437,10 @@ Number of parameters: 46
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.45742275995008
-        x: [ 1.249e+00 -6.341e-01 ... -6.978e-05  1.420e-02]
+      fun: -77.45739964661955
+        x: [ 1.378e+00 -5.863e-01 ...  1.316e-03  1.186e-02]
       nit: 5
-      jac: [ 1.563e-05 -1.208e-04 ... -2.116e-03 -2.767e-03]
+      jac: [-2.757e-04  7.333e-04 ... -1.478e-03 -3.197e-03]
      nfev: 423
      njev: 9
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
@@ -524,34 +524,34 @@ Hamiltonian representing the energy to be optimized as a <code class="docutils l
 Number of parameters: 46
  message: Stop: Total number of iterations reached limit.
  success: False
-     fun: -77.46116872885258
-       x: [ 1.268e+00 -5.734e-01 ...  8.226e-02 -2.267e-01]
+     fun: -77.47309638444167
+       x: [ 1.159e+00 -6.598e-01 ...  2.435e-01 -5.305e-01]
      nit: 5
-     jac: [ 2.131e-04 -1.832e-03 ... -5.862e-04  7.100e-04]
-    nfev: 727
+     jac: [ 2.836e-03  4.093e-03 ...  1.482e-04  3.069e-03]
+    nfev: 733
     njev: 5
-  nlinop: 497
+  nlinop: 503
 
 Iteration 1
-    Energy: -77.45025185289988
-    Norm of gradient: 0.02053145371249009
-    Regularization hyperparameter: 0.9625270412063743
-    Variation hyperparameter: 0.4044676165619391
+    Energy: -77.45686458401971
+    Norm of gradient: 0.015210066163370636
+    Regularization hyperparameter: 0.02464846213429576
+    Variation hyperparameter: 0.509046916275062
 Iteration 2
-    Energy: -77.45038213904122
-    Norm of gradient: 0.0194828838780306
-    Regularization hyperparameter: 0.9623904589036968
-    Variation hyperparameter: 0.4044717633144329
+    Energy: -77.4578944049496
+    Norm of gradient: 0.010299481030875832
+    Regularization hyperparameter: 0.0003926001105232209
+    Variation hyperparameter: 0.512346077682558
 Iteration 3
-    Energy: -77.4569394152391
-    Norm of gradient: 0.014208425008989584
-    Regularization hyperparameter: 0.024521839884384406
-    Variation hyperparameter: 0.4769397650213302
+    Energy: -77.4579274193754
+    Norm of gradient: 0.009854915476022475
+    Regularization hyperparameter: 1.0371629074929263
+    Variation hyperparameter: 0.4961793389410861
 Iteration 4
-    Energy: -77.45794620222556
-    Norm of gradient: 0.00935954307348434
-    Regularization hyperparameter: 0.00029099339879455816
-    Variation hyperparameter: 0.04118157408504708
+    Energy: -77.46235673373631
+    Norm of gradient: 0.027236873992298433
+    Regularization hyperparameter: 0.0026412757829836894
+    Variation hyperparameter: 0.4658700728605012
 </pre></div></div>
 </div>
 </section>
