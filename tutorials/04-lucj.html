@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Entanglement forging" href="05-entanglement-forging.html" /><link rel="prev" title="Diagonal Coulomb operators and double-factorized Trotter simulation" href="03-double-factorized.html" />
 
-    <!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+    <!-- Generated with Sphinx 7.3.5 and Furo 2024.01.29 -->
         <title>The local unitary cluster Jastrow (LUCJ) ansatz - ffsim 0.0.29.dev0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -211,7 +211,7 @@
         </div>
         <article role="main">
           <section id="The-local-unitary-cluster-Jastrow-(LUCJ)-ansatz">
-<h1>The local unitary cluster Jastrow (LUCJ) ansatz<a class="headerlink" href="#The-local-unitary-cluster-Jastrow-(LUCJ)-ansatz" title="Link to this heading">#</a></h1>
+<h1>The local unitary cluster Jastrow (LUCJ) ansatz<a class="headerlink" href="#The-local-unitary-cluster-Jastrow-(LUCJ)-ansatz" title="Link to this heading">¶</a></h1>
 <p>In this tutorial, we show how to use ffsim to simulate the local unitary cluster Jastrow (LUCJ) ansatz. We’ll use it to calculate the ground state energy of an ethene molecule at a stretched bond length.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
@@ -262,7 +262,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-converged SCF energy = -77.4456267643962
+converged SCF energy = -77.4456267643963
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -270,11 +270,11 @@ converged SCF energy = -77.4456267643962
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-CASCI E = -77.6290254326717  E(CI) = -3.57322412553862  S^2 = 0.0000000
+CASCI E = -77.6290254326717  E(CI) = -3.57322412553863  S^2 = 0.0000000
 </pre></div></div>
 </div>
 <section id="The-unitary-cluster-Jastrow-(UCJ)-ansatz">
-<h2>The unitary cluster Jastrow (UCJ) ansatz<a class="headerlink" href="#The-unitary-cluster-Jastrow-(UCJ)-ansatz" title="Link to this heading">#</a></h2>
+<h2>The unitary cluster Jastrow (UCJ) ansatz<a class="headerlink" href="#The-unitary-cluster-Jastrow-(UCJ)-ansatz" title="Link to this heading">¶</a></h2>
 <p>Before describing the LUCJ, we first introduce the general unitary cluster ansatz (UCJ), which has the form</p>
 <div class="math-wrapper docutils container">
 <div class="math notranslate nohighlight">
@@ -325,7 +325,7 @@ have two sets of matrices for describing the diagonal Coulomb operators: “alph
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.49387212754473  E_corr = -0.04824536314851496
+E(CCSD) = -77.49387212754476  E_corr = -0.04824536314851452
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -333,7 +333,7 @@ E(CCSD) = -77.49387212754473  E_corr = -0.04824536314851496
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Energy at initialization: -77.4697560002168
+Energy at initialization: -77.46975600021659
 </pre></div></div>
 </div>
 <p>To facilitate variational optimization of the ansatz, <code class="docutils literal notranslate"><span class="pre">UCJOperator</span></code> implements methods for conversion to and from a vector of real-valued parameters. The precise relation between a parameter vector and the matrices of the UCJ operator is somewhat complicated. In short, the parameter vector stores the entries of the UCJ matrices in a non-redundant way (for the orbital rotations, the parameter vector actually stores the entries of their generators.)</p>
@@ -372,10 +372,10 @@ Number of parameters: 72
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.50964214345545
-        x: [ 1.376e+00 -5.945e-01 ...  8.753e-02  1.396e-01]
+      fun: -77.50963679535428
+        x: [ 1.376e+00 -5.944e-01 ...  8.761e-02  1.396e-01]
       nit: 5
-      jac: [-9.237e-05  8.086e-04 ... -4.202e-03 -3.064e-03]
+      jac: [-8.953e-05  8.299e-04 ... -4.151e-03 -3.079e-03]
      nfev: 584
      njev: 8
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
@@ -383,7 +383,7 @@ Number of parameters: 72
 </div>
 </section>
 <section id="id1">
-<h2>The local unitary cluster Jastrow (LUCJ) ansatz<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<h2>The local unitary cluster Jastrow (LUCJ) ansatz<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <p>Implementing the <span class="math notranslate nohighlight">\(e^{i \mathcal{J}_k}\)</span> term of the UCJ ansatz requires either all-to-all connectivity or the use of a fermionic swap network, making it challenging for noisy pre-fault-tolerant quantum processors that have limited connectivity. The idea of the <em>local</em> UCJ ansatz is to impose sparsity constraints on the <span class="math notranslate nohighlight">\(\mathbf{J}^{\alpha\alpha}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{J}^{\alpha\beta}\)</span> matrices which allow them to be implemented in constant depth on qubit topologies with limited
 connectivity. The constraints are specified by a list of indices indicating which matrix entries in the upper triangle are allowed to be nonzero (since the matrices are symmetric, only the upper triangle needs to be specified).</p>
 <p>As an example, consider a square lattice qubit topology. We can place the <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span> orbitals in parallel lines on the lattice, with connections between these lines forming “rungs” of a ladder shape. With this setup, orbitals with the same spin are connected with a line topology, while orbitals with different spins are connected when they share the same spatial orbital. This yields the following index constraints on the <span class="math notranslate nohighlight">\(\mathbf{J}\)</span> matrices:</p>
@@ -438,10 +438,10 @@ Number of parameters: 46
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.45740473137576
-        x: [ 1.382e+00 -5.850e-01 ...  1.911e-03  1.343e-02]
+      fun: -77.4573980855233
+        x: [ 1.380e+00 -5.846e-01 ...  1.731e-03  1.161e-02]
       nit: 5
-      jac: [-3.183e-04  1.006e-03 ... -1.636e-03 -2.967e-03]
+      jac: [-3.027e-04  7.432e-04 ... -1.364e-03 -3.301e-03]
      nfev: 423
      njev: 9
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
@@ -449,7 +449,7 @@ Number of parameters: 46
 </div>
 </section>
 <section id="Optimize-with-the-linear-method">
-<h2>Optimize with the linear method<a class="headerlink" href="#Optimize-with-the-linear-method" title="Link to this heading">#</a></h2>
+<h2>Optimize with the linear method<a class="headerlink" href="#Optimize-with-the-linear-method" title="Link to this heading">¶</a></h2>
 <p>ffsim includes an implementation of the <a class="reference external" href="https://arxiv.org/abs/1412.0490v2">“linear method”</a> for optimization of a variational wavefunction. The linear method often converges faster than a standard optimization algorithm like L-BFGS-B. The interface is similar to that of <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>, the main difference being that instead of passing a callable that directly returns the function value to be optimized, you pass two objects: a callable that returns the wavefunction, and the
 Hamiltonian representing the energy to be optimized as a <code class="docutils literal notranslate"><span class="pre">LinearOperator</span></code>. The code cell below shows how to use the linear method to optimize the LUCJ ansatz from the previous example. It also shows how you can use an optional callback function to save intermediate results of the optimization.</p>
 <div class="nbinput docutils container">
@@ -525,34 +525,34 @@ Hamiltonian representing the energy to be optimized as a <code class="docutils l
 Number of parameters: 46
  message: Stop: Total number of iterations reached limit.
  success: False
-     fun: -77.46266022023038
-       x: [ 1.316e+00 -5.924e-01 ...  4.425e-02 -2.730e-01]
+     fun: -77.47069317881146
+       x: [ 1.191e+00 -6.405e-01 ...  2.171e-01 -4.231e-01]
      nit: 5
-     jac: [ 1.462e-03  3.845e-03 ... -1.810e-03  2.874e-03]
-    nfev: 715
+     jac: [ 2.537e-03  2.295e-03 ... -6.961e-04  1.685e-03]
+    nfev: 766
     njev: 5
-  nlinop: 485
+  nlinop: 536
 
 Iteration 1
-    Energy: -77.45723965462868
-    Norm of gradient: 0.010194338247429893
-    Regularization hyperparameter: 0.02690249222328766
-    Variation hyperparameter: 0.9916228025622984
+    Energy: -77.45686338760316
+    Norm of gradient: 0.015219136420206544
+    Regularization hyperparameter: 0.0246449903630707
+    Variation hyperparameter: 0.5076985254486964
 Iteration 2
-    Energy: -77.45809872034472
-    Norm of gradient: 0.007607626198364804
-    Regularization hyperparameter: 0.0006210196093916796
-    Variation hyperparameter: 0.9916175193014493
+    Energy: -77.45797106505889
+    Norm of gradient: 0.00934001086032935
+    Regularization hyperparameter: 0.0002825732570172316
+    Variation hyperparameter: 0.05235963835684265
 Iteration 3
-    Energy: -77.45812480793595
-    Norm of gradient: 0.007407548783283292
-    Regularization hyperparameter: 1.0504572384036117
-    Variation hyperparameter: 0.9916104231069998
+    Energy: -77.45799159053121
+    Norm of gradient: 0.009063288893988003
+    Regularization hyperparameter: 1.010172371999009
+    Variation hyperparameter: 0.03927280554633744
 Iteration 4
-    Energy: -77.46239970815331
-    Norm of gradient: 0.0254748711873957
-    Regularization hyperparameter: 0.003328814908994988
-    Variation hyperparameter: 0.9794326148202748
+    Energy: -77.46156366907739
+    Norm of gradient: 0.022919374751683517
+    Regularization hyperparameter: 0.0025594100434693763
+    Variation hyperparameter: 0.03491071323649281
 </pre></div></div>
 </div>
 </section>
@@ -636,7 +636,7 @@ Iteration 4
     </aside>
   </div>
 </div><script src="../_static/documentation_options.js?v=482dcbc7"></script>
-    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
