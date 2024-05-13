@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="How to simulate entanglement forging" href="entanglement-forging.html" /><link rel="prev" title="How-to guides" href="index.html" />
 
     <!-- Generated with Sphinx 7.3.7 and Furo 2024.05.06 -->
-        <title>How to simulate the local unitary cluster Jastrow (LUCJ) ansatz - ffsim 0.0.31 documentation</title>
+        <title>How to simulate the local unitary cluster Jastrow (LUCJ) ansatz - ffsim 0.0.32.dev0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=387cc868" />
     <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
@@ -180,7 +180,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">ffsim 0.0.31 documentation</div></a>
+      <a href="../index.html"><div class="brand">ffsim 0.0.32.dev0 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -204,7 +204,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   
-  <span class="sidebar-brand-text">ffsim 0.0.31 documentation</span>
+  <span class="sidebar-brand-text">ffsim 0.0.32.dev0 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -392,8 +392,8 @@ CASCI E = -77.6290254326717  E(CI) = -3.57322412553863  S^2 = 0.0000000
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.49387212754476  E_corr = -0.04824536314851462
-Energy at initialization: -77.46975600021682
+E(CCSD) = -77.49387212754473  E_corr = -0.04824536314851564
+Energy at initialization: -77.4697560002166
 </pre></div></div>
 </div>
 <p>To facilitate variational optimization of the ansatz, <code class="docutils literal notranslate"><span class="pre">UCJOperator</span></code> implements methods for conversion to and from a vector of real-valued parameters. The precise relation between a parameter vector and the matrices of the UCJ operator is somewhat complicated. In short, the parameter vector stores the entries of the UCJ matrices in a non-redundant way (for the orbital rotations, the parameter vector actually stores the entries of their generators.)</p>
@@ -432,10 +432,10 @@ Number of parameters: 72
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.50963569661185
-        x: [ 1.262e+00 -4.692e-01 ...  8.680e-02  1.366e-01]
+      fun: -77.50963686050655
+        x: [ 1.263e+00 -4.691e-01 ...  8.683e-02  1.366e-01]
       nit: 5
-      jac: [-4.263e-05  6.395e-04 ... -3.627e-03 -4.486e-03]
+      jac: [-5.969e-05  6.537e-04 ... -3.625e-03 -4.493e-03]
      nfev: 584
      njev: 8
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
@@ -498,10 +498,10 @@ Number of parameters: 46
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.4574048733504
-        x: [ 1.266e+00 -4.797e-01 ...  8.272e-03  7.098e-03]
+      fun: -77.45740705870331
+        x: [ 1.263e+00 -4.809e-01 ...  8.713e-03  7.374e-03]
       nit: 5
-      jac: [ 1.492e-04 -8.811e-05 ... -1.383e-03 -3.423e-03]
+      jac: [ 1.293e-04 -1.421e-04 ... -1.165e-03 -3.496e-03]
      nfev: 423
      njev: 9
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
@@ -585,34 +585,34 @@ Hamiltonian representing the energy to be optimized as a <code class="docutils l
 Number of parameters: 46
  message: Stop: Total number of iterations reached limit.
  success: False
-     fun: -77.4630253762121
-       x: [ 1.317e+00 -4.453e-01 ...  6.111e-02 -2.523e-01]
+     fun: -77.46986824603184
+       x: [ 1.377e+00 -4.242e-01 ...  1.528e-01 -4.206e-01]
      nit: 5
-     jac: [-5.155e-03  1.309e-03 ... -3.100e-04  1.727e-03]
-    nfev: 682
+     jac: [-5.175e-03  1.297e-03 ...  1.541e-04  1.613e-03]
+    nfev: 688
     njev: 5
-  nlinop: 452
+  nlinop: 458
 
 Iteration 1
-    Energy: -77.45711779883227
-    Norm of gradient: 0.011929661470247828
-    Regularization hyperparameter: 0.026018175509374672
-    Variation hyperparameter: 0.8097300127007461
+    Energy: -77.45707978680406
+    Norm of gradient: 0.012449778800359048
+    Regularization hyperparameter: 0.025788237996574905
+    Variation hyperparameter: 0.7592640364417157
 Iteration 2
-    Energy: -77.45819798621943
-    Norm of gradient: 0.008139596981042229
-    Regularization hyperparameter: 0.00043518747447692435
-    Variation hyperparameter: 0.8110465009360384
+    Energy: -77.458204541083
+    Norm of gradient: 0.008187926664822019
+    Regularization hyperparameter: 0.00040540351396250703
+    Variation hyperparameter: 0.7622941102882033
 Iteration 3
-    Energy: -77.45822460778439
-    Norm of gradient: 0.007966208730120657
-    Regularization hyperparameter: 1.042075481414655
-    Variation hyperparameter: 0.8082841549635312
+    Energy: -77.45823067211788
+    Norm of gradient: 0.008026861380769277
+    Regularization hyperparameter: 1.0405689088733938
+    Variation hyperparameter: 0.7586013915585563
 Iteration 4
-    Energy: -77.46281696783043
-    Norm of gradient: 0.023171860029060458
-    Regularization hyperparameter: 0.0037330045541337743
-    Variation hyperparameter: 0.914236694226666
+    Energy: -77.46294672059022
+    Norm of gradient: 0.02370546126661047
+    Regularization hyperparameter: 0.003219743135775606
+    Variation hyperparameter: 0.6775863618836344
 </pre></div></div>
 </div>
 </section>
@@ -695,7 +695,7 @@ Iteration 4
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=c5dbc6bb"></script>
+</div><script src="../_static/documentation_options.js?v=03ecf9b0"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=4e2eecee"></script>
