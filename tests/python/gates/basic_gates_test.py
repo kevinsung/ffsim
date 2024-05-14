@@ -12,6 +12,7 @@
 
 from __future__ import annotations
 
+import cmath
 import itertools
 from typing import Callable
 
@@ -81,6 +82,41 @@ def assert_has_two_orbital_matrix(
     ):
         actual_mat[a, b] = np.vdot(state_a, gate(state_b, norb, (0, 1)))
     np.testing.assert_allclose(actual_mat, expected_mat, rtol=rtol, atol=atol)
+
+
+@pytest.mark.parametrize("norb, spin", ffsim.testing.generate_norb_spin(range(4)))
+def test_apply_givens_matrix(norb: int, spin: ffsim.Spin):
+    """Test complex Givens rotation matrix."""
+    rng = np.random.default_rng()
+
+    def mat(c: float, s: complex) -> np.ndarray:
+        return np.array([[c, -s.conjugate()], [s, c]])
+
+    phase_00 = 1
+    phase_11 = 1
+
+    for _ in range(3):
+        s = cmath.exp(1j * rng.uniform(-cmath.pi, cmath.pi))
+        c = 1 - abs(s) ** 2
+        for i, j in itertools.combinations(range(norb), 2):
+            for target_orbs in [(i, j), (j, i)]:
+                assert_has_two_orbital_matrix(
+                    lambda vec, norb, nelec: ffsim.apply_givens(
+                        vec,
+                        c,
+                        s,
+                        target_orbs=target_orbs,
+                        norb=norb,
+                        nelec=nelec,
+                        spin=spin,
+                    ),
+                    target_orbs=target_orbs,
+                    mat=mat(c, s),
+                    phase_00=phase_00,
+                    phase_11=phase_11,
+                    norb=norb,
+                    spin=spin,
+                )
 
 
 @pytest.mark.parametrize("norb, spin", ffsim.testing.generate_norb_spin(range(4)))

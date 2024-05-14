@@ -50,6 +50,70 @@ def _apply_phase_shift(
     return vec.reshape(-1)
 
 
+def apply_givens(
+    vec: np.ndarray,
+    c: float,
+    s: complex,
+    target_orbs: tuple[int, int],
+    *,
+    norb: int,
+    nelec: tuple[int, int],
+    spin: Spin = Spin.ALPHA_AND_BETA,
+    copy: bool = True,
+) -> np.ndarray:
+    r"""Apply a complex Givens rotation gate.
+
+    The complex Givens rotation gate is
+
+    TODO
+    .. math::
+
+        \text{G}(\theta, (p, q)) = \prod_{\sigma}
+        \exp\left(\theta (a^\dagger_{\sigma, p} a_{\sigma, q}
+        - a^\dagger_{\sigma, q} a_{\sigma, p})\right)
+
+    Under the Jordan-Wigner transform, this gate has the following matrix when applied
+    to neighboring qubits:
+
+    .. math::
+
+        \begin{pmatrix}
+            1 & 0 & 0 & 0 \\
+            0 & c & -s^* & 0\\
+            0 & s & c & 0\\
+            0 & 0 & 0 & 1 \\
+        \end{pmatrix}
+
+    Args:
+        vec: The state vector to be transformed.
+        theta: The rotation angle.
+        target_orbs: The orbitals (p, q) to rotate.
+        norb: The number of spatial orbitals.
+        nelec: The number of alpha and beta electrons.
+        spin: Choice of spin sector(s) to act on.
+
+            - To act on only spin alpha, pass :const:`ffsim.Spin.ALPHA`.
+            - To act on only spin beta, pass :const:`ffsim.Spin.BETA`.
+            - To act on both spin alpha and spin beta, pass
+              :const:`ffsim.Spin.ALPHA_AND_BETA` (this is the default value).
+        copy: Whether to copy the vector before operating on it.
+
+            - If `copy=True` then this function always returns a newly allocated
+              vector and the original vector is left untouched.
+            - If `copy=False` then this function may still return a newly allocated
+              vector, but the original vector may have its data overwritten.
+              It is also possible that the original vector is returned,
+              modified in-place.
+    """
+    if len(set(target_orbs)) == 1:
+        raise ValueError(f"The orbitals to rotate must be distinct. Got {target_orbs}.")
+    mat = np.eye(norb, dtype=complex)
+    mat[np.ix_(target_orbs, target_orbs)] = [[c, s], [-s.conjugate(), c]]
+    return apply_orbital_rotation(
+        vec, mat, norb=norb, nelec=nelec, spin=spin, copy=copy
+    )
+
+
 def apply_givens_rotation(
     vec: np.ndarray,
     theta: float,
@@ -105,12 +169,15 @@ def apply_givens_rotation(
     """
     if len(set(target_orbs)) == 1:
         raise ValueError(f"The orbitals to rotate must be distinct. Got {target_orbs}.")
-    c = math.cos(theta)
-    s = math.sin(theta)
-    mat = np.eye(norb)
-    mat[np.ix_(target_orbs, target_orbs)] = [[c, s], [-s, c]]
-    return apply_orbital_rotation(
-        vec, mat, norb=norb, nelec=nelec, spin=spin, copy=copy
+    return apply_givens(
+        vec,
+        math.cos(theta),
+        math.sin(theta),
+        target_orbs=target_orbs,
+        norb=norb,
+        nelec=nelec,
+        spin=spin,
+        copy=copy,
     )
 
 
