@@ -317,14 +317,13 @@
     <span class="n">basis</span><span class="o">=</span><span class="s2">&quot;sto-6g&quot;</span><span class="p">,</span>
     <span class="n">symmetry</span><span class="o">=</span><span class="s2">&quot;d2h&quot;</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">hartree_fock</span> <span class="o">=</span> <span class="n">pyscf</span><span class="o">.</span><span class="n">scf</span><span class="o">.</span><span class="n">RHF</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
-<span class="n">hartree_fock</span><span class="o">.</span><span class="n">kernel</span><span class="p">()</span>
 
 <span class="c1"># Define active space</span>
 <span class="n">active_space</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">nelectron</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">mol</span><span class="o">.</span><span class="n">nelectron</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
 
 <span class="c1"># Get molecular data and molecular Hamiltonian (one- and two-body tensors)</span>
-<span class="n">mol_data</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">MolecularData</span><span class="o">.</span><span class="n">from_scf</span><span class="p">(</span><span class="n">hartree_fock</span><span class="p">,</span> <span class="n">active_space</span><span class="o">=</span><span class="n">active_space</span><span class="p">)</span>
+<span class="n">scf</span> <span class="o">=</span> <span class="n">pyscf</span><span class="o">.</span><span class="n">scf</span><span class="o">.</span><span class="n">RHF</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">mol_data</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">MolecularData</span><span class="o">.</span><span class="n">from_scf</span><span class="p">(</span><span class="n">scf</span><span class="p">,</span> <span class="n">active_space</span><span class="o">=</span><span class="n">active_space</span><span class="p">)</span>
 <span class="n">norb</span> <span class="o">=</span> <span class="n">mol_data</span><span class="o">.</span><span class="n">norb</span>
 <span class="n">nelec</span> <span class="o">=</span> <span class="n">mol_data</span><span class="o">.</span><span class="n">nelec</span>
 <span class="n">mol_hamiltonian</span> <span class="o">=</span> <span class="n">mol_data</span><span class="o">.</span><span class="n">hamiltonian</span>
@@ -339,7 +338,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-converged SCF energy = -77.4456267643963
+converged SCF energy = -77.4456267643962
 CASCI E = -77.6290254326717  E(CI) = -3.57322412553862  S^2 = 0.0000000
 </pre></div></div>
 </div>
@@ -367,8 +366,8 @@ CASCI E = -77.6290254326717  E(CI) = -3.57322412553862  S^2 = 0.0000000
 
 <span class="c1"># Get CCSD t2 amplitudes for initializing the ansatz</span>
 <span class="n">ccsd</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CCSD</span><span class="p">(</span>
-    <span class="n">hartree_fock</span><span class="p">,</span>
-    <span class="n">frozen</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">hartree_fock</span><span class="o">.</span><span class="n">mol</span><span class="o">.</span><span class="n">nao_nr</span><span class="p">())</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">active_space</span><span class="p">],</span>
+    <span class="n">scf</span><span class="p">,</span>
+    <span class="n">frozen</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">nao_nr</span><span class="p">())</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">active_space</span><span class="p">],</span>
 <span class="p">)</span>
 <span class="n">_</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="o">=</span> <span class="n">ccsd</span><span class="o">.</span><span class="n">kernel</span><span class="p">()</span>
 
@@ -394,8 +393,8 @@ CASCI E = -77.6290254326717  E(CI) = -3.57322412553862  S^2 = 0.0000000
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.49387212754476  E_corr = -0.04824536314851519
-Energy at initialization: -77.46975600021705
+E(CCSD) = -77.49387212754471  E_corr = -0.04824536314851512
+Energy at initialization: -77.4697560002171
 </pre></div></div>
 </div>
 <p>To facilitate variational optimization of the ansatz, <code class="docutils literal notranslate"><span class="pre">UCJOperator</span></code> implements methods for conversion to and from a vector of real-valued parameters. The precise relation between a parameter vector and the matrices of the UCJ operator is somewhat complicated. In short, the parameter vector stores the entries of the UCJ matrices in a non-redundant way (for the orbital rotations, the parameter vector actually stores the entries of their generators.)</p>
@@ -434,10 +433,10 @@ Number of parameters: 72
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.5096366138991
-        x: [ 1.262e+00 -4.693e-01 ...  8.683e-02  1.365e-01]
+      fun: -77.50963831721376
+        x: [ 1.262e+00 -4.689e-01 ...  8.691e-02  1.366e-01]
       nit: 5
-      jac: [-1.023e-04  6.182e-04 ... -3.604e-03 -4.513e-03]
+      jac: [-7.390e-05  6.409e-04 ... -3.611e-03 -4.498e-03]
      nfev: 584
      njev: 8
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
@@ -500,10 +499,10 @@ Number of parameters: 46
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.45741016479911
-        x: [ 1.263e+00 -4.805e-01 ...  8.471e-03  7.189e-03]
+      fun: -77.45741477995514
+        x: [ 1.264e+00 -4.797e-01 ...  9.149e-03  7.880e-03]
       nit: 5
-      jac: [ 1.720e-04 -8.669e-05 ... -1.393e-03 -3.352e-03]
+      jac: [ 1.066e-04 -1.677e-04 ... -1.084e-03 -3.467e-03]
      nfev: 423
      njev: 9
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
@@ -587,34 +586,34 @@ Hamiltonian representing the energy to be optimized as a <code class="docutils l
 Number of parameters: 46
  message: Stop: Total number of iterations reached limit.
  success: False
-     fun: -77.46954423383244
-       x: [ 1.353e+00 -4.238e-01 ...  1.510e-01 -4.255e-01]
+     fun: -77.4697219314078
+       x: [ 1.379e+00 -4.263e-01 ...  1.485e-01 -4.049e-01]
      nit: 5
-     jac: [-5.063e-03  1.403e-03 ... -8.106e-04  1.722e-03]
-    nfev: 745
+     jac: [-5.197e-03  1.262e-03 ... -6.041e-05  1.728e-03]
+    nfev: 721
     njev: 5
-  nlinop: 515
+  nlinop: 491
 
 Iteration 1
-    Energy: -77.45716171682228
-    Norm of gradient: 0.011299616250557679
-    Regularization hyperparameter: 0.026294700922602433
-    Variation hyperparameter: 0.8697172339890384
+    Energy: -77.45709893153455
+    Norm of gradient: 0.01219124339405024
+    Regularization hyperparameter: 0.025902529224115723
+    Variation hyperparameter: 0.7845195220892227
 Iteration 2
-    Energy: -77.4581876763837
-    Norm of gradient: 0.008087556834459117
-    Regularization hyperparameter: 0.00047480818502489044
-    Variation hyperparameter: 0.8707330513502038
+    Energy: -77.45820168283362
+    Norm of gradient: 0.008174239387556017
+    Regularization hyperparameter: 0.0004192735748428189
+    Variation hyperparameter: 0.7853571980812446
 Iteration 3
-    Energy: -77.45821500037067
-    Norm of gradient: 0.007902725209668405
-    Regularization hyperparameter: 1.043688374990191
-    Variation hyperparameter: 0.8694478484439061
+    Energy: -77.4582280941249
+    Norm of gradient: 0.00800563540722374
+    Regularization hyperparameter: 1.0412662749887742
+    Variation hyperparameter: 0.7820406554450516
 Iteration 4
-    Energy: -77.46255290158453
-    Norm of gradient: 0.022697712558745982
-    Regularization hyperparameter: 0.0038879548287056253
-    Variation hyperparameter: 0.9638610534386103
+    Energy: -77.46294272933183
+    Norm of gradient: 0.023395214937734783
+    Regularization hyperparameter: 0.003657326081295017
+    Variation hyperparameter: 0.889627558876198
 </pre></div></div>
 </div>
 </section>
