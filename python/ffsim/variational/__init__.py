@@ -18,6 +18,7 @@ from ffsim.variational.multireference import (
 )
 from ffsim.variational.num_num import NumNumAnsatzOpSpinBalanced
 from ffsim.variational.ucj import RealUCJOperator, UCJOperator
+from ffsim.variational.ucj_angles_spin_balanced import UCJAnglesOpSpinBalanced
 from ffsim.variational.ucj_spin_balanced import UCJOpSpinBalanced
 from ffsim.variational.ucj_spin_unbalanced import UCJOpSpinUnbalanced
 from ffsim.variational.ucj_spinless import UCJOpSpinless
@@ -28,6 +29,7 @@ __all__ = [
     "HopGateAnsatzOperator",
     "NumNumAnsatzOpSpinBalanced",
     "RealUCJOperator",
+    "UCJAnglesOpSpinBalanced",
     "UCJOperator",
     "UCJOpSpinBalanced",
     "UCJOpSpinUnbalanced",

@@ -320,21 +320,43 @@ def random_ucj_op_spin_balanced(
     *,
     n_reps: int = 1,
     with_final_orbital_rotation: bool = False,
+    interaction_pairs: tuple[list[tuple[int, int]] | None, list[tuple[int, int]] | None]
+    | None = None,
     seed=None,
 ) -> variational.UCJOpSpinBalanced:
-    """Sample a random spin-balanced unitary cluster Jastrow (UCJ) operator.
+    r"""Sample a random spin-balanced unitary cluster Jastrow (UCJ) operator.
 
     Args:
         norb: The number of orbitals.
         n_reps: The number of ansatz repetitions.
         with_final_orbital_rotation: Whether to include a final orbital rotation
             in the operator.
+        interaction_pairs: Optional restrictions on allowed orbital interactions
+            for the diagonal Coulomb operators.
+            If specified, `interaction_pairs` should be a pair of lists,
+            for alpha-alpha and alpha-beta interactions, in that order.
+            Either list can be substituted with ``None`` to indicate no restrictions
+            on interactions.
+            Each list should contain pairs of integers representing the orbitals
+            that are allowed to interact. These pairs can also be interpreted as
+            indices of diagonal Coulomb matrix entries that are allowed to be
+            nonzero.
+            Each integer pair must be upper triangular, that is, of the form
+            :math:`(i, j)` where :math:`i \leq j`.
         seed: A seed to initialize the pseudorandom number generator.
             Should be a valid input to ``np.random.default_rng``.
 
     Returns:
         The sampled UCJ operator.
     """
+    from ffsim.variational.ucj_spin_balanced import _validate_interaction_pairs
+
+    if interaction_pairs is None:
+        interaction_pairs = (None, None)
+    pairs_aa, pairs_ab = interaction_pairs
+    _validate_interaction_pairs(pairs_aa, ordered=False)
+    _validate_interaction_pairs(pairs_ab, ordered=False)
+
     rng = np.random.default_rng(seed)
     diag_coulomb_mats = np.stack(
         [
@@ -353,6 +375,21 @@ def random_ucj_op_spin_balanced(
     final_orbital_rotation = None
     if with_final_orbital_rotation:
         final_orbital_rotation = random_unitary(norb, seed=rng)
+
+    # Zero out diagonal coulomb matrix entries if requested
+    if pairs_aa is not None:
+        mask = np.zeros((norb, norb), dtype=bool)
+        rows, cols = zip(*pairs_aa)
+        mask[rows, cols] = True
+        mask[cols, rows] = True
+        diag_coulomb_mats[:, 0] *= mask
+    if pairs_ab is not None:
+        mask = np.zeros((norb, norb), dtype=bool)
+        rows, cols = zip(*pairs_ab)
+        mask[rows, cols] = True
+        mask[cols, rows] = True
+        diag_coulomb_mats[:, 1] *= mask
+
     return variational.UCJOpSpinBalanced(
         diag_coulomb_mats=diag_coulomb_mats,
         orbital_rotations=orbital_rotations,
