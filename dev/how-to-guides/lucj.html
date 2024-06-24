@@ -235,7 +235,7 @@
 <li class="toctree-l2"><a class="reference internal" href="qiskit-sampler.html">How to use ffsim’s Qiskit Sampler primitive</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API reference</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of API reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../api/ffsim.html">ffsim</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/ffsim.contract.html">ffsim.contract</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api/ffsim.linalg.html">ffsim.linalg</a></li>
@@ -245,9 +245,10 @@
 <li class="toctree-l2"><a class="reference internal" href="../api/ffsim.testing.html">ffsim.testing</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference external" href="https://github.com/qiskit-community/ffsim/blob/main/CONTRIBUTING.md">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/qiskit-community/ffsim/blob/main/CONTRIBUTING.md">Developer guide</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/qiskit-community/ffsim">GitHub</a></li>
-<li class="toctree-l1"><a class="reference external" href="https://qiskit-community.github.io/ffsim/dev/">Development Branch Docs</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/qiskit-community/ffsim/releases">Release notes</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://qiskit-community.github.io/ffsim/dev/">Development branch docs</a></li>
 </ul>
 
 </div>
@@ -343,8 +344,8 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-converged SCF energy = -77.8266321248744
-CASCI E = -77.8742165643863  E(CI) = -4.02122442107773  S^2 = 0.0000000
+converged SCF energy = -77.8266321248745
+CASCI E = -77.8742165643862  E(CI) = -4.02122442107773  S^2 = 0.0000000
 norb = 4
 nelec = (2, 2)
 </pre></div></div>
@@ -387,7 +388,7 @@ nelec = (2, 2)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.87421536374028  E_corr = -0.04758323886584415
+E(CCSD) = -77.8742153637403  E_corr = -0.04758323886584668
 Energy at initialization: -77.87160024816276
 </pre></div></div>
 </div>
@@ -426,12 +427,12 @@ Number of parameters: 72
   message: STOP: TOTAL NO. of ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.8738739128755
-        x: [-1.153e+00  3.252e-04 ...  3.170e-04  1.286e-01]
+      fun: -77.87387392248627
+        x: [-1.153e+00 -1.467e-04 ...  1.585e-04  1.286e-01]
       nit: 10
-      jac: [-1.279e-05 -3.126e-05 ...  1.421e-06  5.684e-06]
-     nfev: 949
-     njev: 13
+      jac: [-1.279e-05  1.421e-05 ...  4.263e-06  0.000e+00]
+     nfev: 876
+     njev: 12
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
 </pre></div></div>
 </div>
@@ -477,10 +478,10 @@ Number of parameters: 46
   message: CONVERGENCE: REL_REDUCTION_OF_F_&lt;=_FACTR*EPSMCH
   success: True
    status: 0
-      fun: -77.87363426358513
-        x: [-1.152e+00  1.047e-04 ...  3.522e-02  2.561e-01]
+      fun: -77.87363426470762
+        x: [-1.152e+00  5.110e-05 ...  3.520e-02  2.561e-01]
       nit: 5
-      jac: [-9.948e-06 -2.416e-05 ...  1.421e-06 -7.105e-06]
+      jac: [ 2.416e-05 -1.705e-05 ...  4.263e-06 -1.421e-06]
      nfev: 329
      njev: 7
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
@@ -558,59 +559,59 @@ Hamiltonian representing the energy to be optimized as a <code class="docutils l
 Number of parameters: 46
  message: Stop: Total number of iterations reached limit.
  success: False
-     fun: -77.87417219917018
-       x: [-1.353e+00  3.999e-02 ...  3.719e-02  2.789e-01]
+     fun: -77.87406727053404
+       x: [-1.312e+00  5.595e-03 ...  2.733e-02  2.565e-01]
      nit: 10
-     jac: [ 9.527e-05 -1.259e-04 ...  3.994e-05 -1.485e-04]
-    nfev: 1303
+     jac: [ 8.892e-04  2.967e-04 ... -1.140e-03 -1.071e-03]
+    nfev: 1225
     njev: 10
-  nlinop: 843
+  nlinop: 765
 
 Iteration 1
-    Energy: -77.87363004768837
-    Norm of gradient: 0.001502168735958615
-    Regularization hyperparameter: 0.001209713188644276
-    Variation hyperparameter: 0.9896783767959596
+    Energy: -77.8736311151451
+    Norm of gradient: 0.0013143841669561735
+    Regularization hyperparameter: 0.0015741658343711592
+    Variation hyperparameter: 0.9942489060300218
 Iteration 2
-    Energy: -77.87363413576426
-    Norm of gradient: 0.00012148462251731099
-    Regularization hyperparameter: 0.007713202170461221
-    Variation hyperparameter: 0.9906463994960908
+    Energy: -77.87363430948184
+    Norm of gradient: 5.809227248262602e-05
+    Regularization hyperparameter: 0.00278117335672005
+    Variation hyperparameter: 0.9942965065066038
 Iteration 3
-    Energy: -77.87363431650235
-    Norm of gradient: 3.44339557866453e-05
-    Regularization hyperparameter: 0.00771322557892662
-    Variation hyperparameter: 0.9906464027457593
+    Energy: -77.87363432087524
+    Norm of gradient: 1.3015500508032377e-05
+    Regularization hyperparameter: 0.002781173306614192
+    Variation hyperparameter: 0.994296506495058
 Iteration 4
-    Energy: -77.87363435860942
-    Norm of gradient: 2.348416684835389e-05
-    Regularization hyperparameter: 0.0007427854144843826
-    Variation hyperparameter: 0.9923830940396006
+    Energy: -77.87363432638676
+    Norm of gradient: 1.1775286208517969e-05
+    Regularization hyperparameter: 0.00278117329313041
+    Variation hyperparameter: 0.9942965064901039
 Iteration 5
-    Energy: -77.8738344119365
-    Norm of gradient: 0.008084637248751721
-    Regularization hyperparameter: 2.4836522146217096e-05
-    Variation hyperparameter: 0.9921501194332096
+    Energy: -77.8736354568798
+    Norm of gradient: 0.0010858082815868413
+    Regularization hyperparameter: 4.447471287795346e-05
+    Variation hyperparameter: 0.9943238798123767
 Iteration 6
-    Energy: -77.87393330852551
-    Norm of gradient: 0.004008249194480549
-    Regularization hyperparameter: 0.11445444255634823
-    Variation hyperparameter: 0.9921500761691047
+    Energy: -77.87363599269733
+    Norm of gradient: 0.0010325198534493231
+    Regularization hyperparameter: 1.0133685264107644
+    Variation hyperparameter: 0.9943230896507347
 Iteration 7
-    Energy: -77.87414243170949
-    Norm of gradient: 0.0018942483719269446
-    Regularization hyperparameter: 0.0010277686087901128
-    Variation hyperparameter: 0.9915725445505721
+    Energy: -77.87363648886374
+    Norm of gradient: 0.0009952737009037067
+    Regularization hyperparameter: 1.0105005408298808
+    Variation hyperparameter: 0.9943197359314666
 Iteration 8
-    Energy: -77.87415766849601
-    Norm of gradient: 0.0010241350666703342
-    Regularization hyperparameter: 0.00023304940797380145
-    Variation hyperparameter: 0.9916368563430547
+    Energy: -77.87363702798778
+    Norm of gradient: 0.0009652833632465706
+    Regularization hyperparameter: 0.8504363876289619
+    Variation hyperparameter: 0.9597657098571553
 Iteration 9
-    Energy: -77.87415911780536
-    Norm of gradient: 0.00048697662480881154
-    Regularization hyperparameter: 0.12050682721837919
-    Variation hyperparameter: 0.9916196837065201
+    Energy: -77.87377473290837
+    Norm of gradient: 0.004654778600413464
+    Regularization hyperparameter: 0.0008718451746105628
+    Variation hyperparameter: 0.5768425063543619
 </pre></div></div>
 </div>
 </section>
