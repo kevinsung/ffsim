@@ -10,8 +10,6 @@
 
 """Tests for gates."""
 
-import itertools
-
 import numpy as np
 import pytest
 import quimb
@@ -21,15 +19,22 @@ from qiskit.quantum_info import SparsePauliOp, Statevector
 import ffsim
 
 
-@pytest.mark.parametrize("norb, nelec", [(4, (2, 2)), (5, (3, 2))])
+@pytest.mark.parametrize("norb, nelec", [(3, (2, 1)), (4, (2, 2))])
 def test_orbital_rotation(norb: int, nelec: tuple[int, int]):
     """Test orbital rotation."""
     rng = np.random.default_rng(3315)
-    # TODO test on random state
-    vec = ffsim.hartree_fock_state(norb, nelec)
+
+    dim = ffsim.dim(norb, nelec)
+    vec = ffsim.random.random_state_vector(dim, seed=rng)
+    qiskit_vec = ffsim.qiskit.ffsim_vec_to_qiskit_vec(vec, norb, nelec)
+    statevector = Statevector(qiskit_vec)
+
     orbital_rotation = ffsim.random.random_unitary(norb, seed=rng)
     rotated_vec = ffsim.apply_orbital_rotation(
         vec, orbital_rotation, norb=norb, nelec=nelec
+    )
+    rotated_vec = ffsim.apply_orbital_rotation(
+        rotated_vec, orbital_rotation, norb=norb, nelec=nelec
     )
     statevector = Statevector(
         ffsim.qiskit.ffsim_vec_to_qiskit_vec(rotated_vec, norb, nelec)
@@ -51,12 +56,19 @@ def test_orbital_rotation(norb: int, nelec: tuple[int, int]):
     y_expectations_expected = [statevector.expectation_value(op).real for op in y_ops]
     z_expectations_expected = [statevector.expectation_value(op).real for op in z_ops]
 
-    circuit = quimb.tensor.Circuit.from_gates(
-        itertools.chain(
-            ffsim.quimb.prepare_hartree_fock_gates(norb, nelec),
-            ffsim.quimb.orbital_rotation_gates(orbital_rotation),
-        )
+    tensor = quimb.tensor.Tensor(
+        qiskit_vec.reshape([2] * 2 * norb),
+        inds=[f"k{i}" for i in range(2 * norb - 1, -1, -1)],
     )
+    tn = quimb.tensor.TensorNetwork([tensor])
+    psi0 = quimb.tensor.tensor_1d.TensorNetwork1DVector.from_TN(
+        tn, L=2 * norb, site_tag_id="I{}", site_ind_id="k{}"
+    )
+    circuit = quimb.tensor.Circuit(psi0=psi0)
+    gates = list(ffsim.quimb.orbital_rotation_gates(orbital_rotation))
+    circuit.apply_gates(gates)
+    circuit.apply_gates(gates)
+
     x_expectations = [
         circuit.local_expectation(quimb.pauli("X"), (i,)) for i in range(2 * norb)
     ]

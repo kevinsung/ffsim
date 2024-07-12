@@ -16,13 +16,13 @@ def prepare_hartree_fock_gates(norb: int, nelec: int):
 
 
 def orbital_rotation_gates(orbital_rotation: np.ndarray):
+    # TODO support different orbital rotations for each spin
     norb, _ = orbital_rotation.shape
     givens_rotations, phase_shifts = linalg.givens_decomposition(orbital_rotation)
     for sigma in range(2):
         for c, s, i, j in givens_rotations:
-            # TODO test whether first or second RZ should have minus sign
             yield quimb.tensor.Gate(
-                "RZ", params=[-cmath.phase(s)], qubits=[i + sigma * norb]
+                "RZ", params=[cmath.phase(s)], qubits=[i + sigma * norb]
             )
             yield quimb.tensor.Gate(
                 "GIVENS",
@@ -30,10 +30,9 @@ def orbital_rotation_gates(orbital_rotation: np.ndarray):
                 qubits=[i + sigma * norb, j + sigma * norb],
             )
             yield quimb.tensor.Gate(
-                "RZ", params=[cmath.phase(s)], qubits=[i + sigma * norb]
+                "RZ", params=[-cmath.phase(s)], qubits=[i + sigma * norb]
             )
         for i, phase_shift in enumerate(phase_shifts):
-            # TODO test whether phase should have minus sign
             yield quimb.tensor.Gate(
-                "RZ", params=[-cmath.phase(phase_shift)], qubits=[i + sigma * norb]
+                "RZ", params=[cmath.phase(phase_shift)], qubits=[i + sigma * norb]
             )
