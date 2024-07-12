@@ -59,20 +59,22 @@ def test_orbital_rotation(norb: int, nelec: tuple[int, int]):
 def test_quimb_circuit_basic():
     """Test quimb circuit with basic gate."""
     rng = np.random.default_rng(3377)
-    qubits = QuantumRegister(8)
+    qubits = QuantumRegister(4)
     circuit = QuantumCircuit(qubits)
-    a, b, c, d, e, f, g, h = qubits
+    a, b, c, d = qubits
 
     circuit.append(XGate(), [a])
+    circuit.append(XGate(), [b])
+    circuit.append(XXPlusYYGate(rng.uniform(-10, 10), rng.uniform(-10, 10)), [b, c])
     circuit.append(XXPlusYYGate(rng.uniform(-10, 10), rng.uniform(-10, 10)), [a, b])
-    circuit.append(PhaseGate(rng.uniform(-10, 10)), [b])
+    circuit.append(XXPlusYYGate(rng.uniform(-10, 10), rng.uniform(-10, 10)), [c, d])
     circuit.append(CPhaseGate(rng.uniform(-10, 10)), [b, c])
-    circuit.append(XGate(), [d])
-    circuit.append(XXPlusYYGate(rng.uniform(-10, 10), rng.uniform(-10, 10)), [e, f])
-    circuit.append(PhaseGate(rng.uniform(-10, 10)), [g])
-    circuit.append(CPhaseGate(rng.uniform(-10, 10)), [g, h])
-    circuit.append(XGate(), [f])
-    circuit.append(XXPlusYYGate(rng.uniform(-10, 10), rng.uniform(-10, 10)), [g, h])
+    circuit.append(CPhaseGate(rng.uniform(-10, 10)), [a, b])
+    circuit.append(CPhaseGate(rng.uniform(-10, 10)), [c, d])
+    circuit.append(PhaseGate(rng.uniform(-10, 10)), [a])
+    circuit.append(PhaseGate(rng.uniform(-10, 10)), [b])
+    circuit.append(PhaseGate(rng.uniform(-10, 10)), [c])
+    circuit.append(PhaseGate(rng.uniform(-10, 10)), [d])
 
     quimb_circuit = ffsim.quimb.quimb_circuit(circuit)
     qiskit_vec = np.array(Statevector(circuit))
