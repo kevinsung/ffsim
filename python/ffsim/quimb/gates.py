@@ -1,13 +1,15 @@
 import cmath
 import math
+from collections.abc import Iterator
 
 import numpy as np
 import quimb.tensor
+from qiskit.circuit import Instruction, QuantumCircuit
 
 from ffsim import linalg
 
 
-def prepare_hartree_fock_gates(norb: int, nelec: int):
+def prepare_hartree_fock_gates(norb: int, nelec: int) -> Iterator[quimb.tensor.Gate]:
     n_alpha, n_beta = nelec
     for orb in range(n_alpha):
         yield quimb.tensor.Gate("X", params=[], qubits=[orb])
@@ -15,7 +17,7 @@ def prepare_hartree_fock_gates(norb: int, nelec: int):
         yield quimb.tensor.Gate("X", params=[], qubits=[orb + norb])
 
 
-def orbital_rotation_gates(orbital_rotation: np.ndarray):
+def orbital_rotation_gates(orbital_rotation: np.ndarray) -> Iterator[quimb.tensor.Gate]:
     # TODO support different orbital rotations for each spin
     norb, _ = orbital_rotation.shape
     givens_rotations, phase_shifts = linalg.givens_decomposition(orbital_rotation)
@@ -36,3 +38,26 @@ def orbital_rotation_gates(orbital_rotation: np.ndarray):
             yield quimb.tensor.Gate(
                 "RZ", params=[cmath.phase(phase_shift)], qubits=[i + sigma * norb]
             )
+
+
+def quimb_circuit(circuit: QuantumCircuit) -> quimb.tensor.Circuit:
+    quimb_circuit = quimb.tensor.Circuit(circuit.num_qubits)
+    for instruction in circuit.data:
+        op = instruction.operation
+        qubits = [circuit.find_bit(qubit).index for qubit in instruction.qubits]
+        quimb_circuit.apply_gates(list(quimb_gates(op, qubits)))
+    return quimb_circuit
+
+
+def quimb_gates(op: Instruction, qubits: list[int]) -> Iterator[quimb.tensor.Gate]:
+    if op.name == "x":
+        yield quimb.tensor.Gate("X", params=[], qubits=qubits)
+    if op.name == "p":
+        yield quimb.tensor.Gate("RZ", params=op.params, qubits=qubits)
+    if op.name == "cp":
+        yield quimb.tensor.Gate("RZZ", params=op.params, qubits=qubits)
+    if op.name == "xx_plus_yy":
+        theta, phi = op.params
+        yield quimb.tensor.Gate("RZ", params=[phi], qubits=qubits[0])
+        yield quimb.tensor.Gate("GIVENS", params=[theta], qubits=qubits)
+        yield quimb.tensor.Gate("RZ", params=[-phi], qubits=qubits[0])
