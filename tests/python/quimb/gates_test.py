@@ -14,7 +14,6 @@ import numpy as np
 import pytest
 import quimb
 import quimb.tensor
-from qiskit.quantum_info import SparsePauliOp, Statevector
 
 import ffsim
 
@@ -27,7 +26,6 @@ def test_orbital_rotation(norb: int, nelec: tuple[int, int]):
     dim = ffsim.dim(norb, nelec)
     vec = ffsim.random.random_state_vector(dim, seed=rng)
     qiskit_vec = ffsim.qiskit.ffsim_vec_to_qiskit_vec(vec, norb, nelec)
-    statevector = Statevector(qiskit_vec)
 
     orbital_rotation = ffsim.random.random_unitary(norb, seed=rng)
     rotated_vec = ffsim.apply_orbital_rotation(
@@ -36,29 +34,11 @@ def test_orbital_rotation(norb: int, nelec: tuple[int, int]):
     rotated_vec = ffsim.apply_orbital_rotation(
         rotated_vec, orbital_rotation, norb=norb, nelec=nelec
     )
-    statevector = Statevector(
-        ffsim.qiskit.ffsim_vec_to_qiskit_vec(rotated_vec, norb, nelec)
-    )
-
-    x_ops = [
-        SparsePauliOp.from_sparse_list([("X", (i,), 1.0)], num_qubits=2 * norb)
-        for i in range(2 * norb)
-    ]
-    y_ops = [
-        SparsePauliOp.from_sparse_list([("Y", (i,), 1.0)], num_qubits=2 * norb)
-        for i in range(2 * norb)
-    ]
-    z_ops = [
-        SparsePauliOp.from_sparse_list([("Z", (i,), 1.0)], num_qubits=2 * norb)
-        for i in range(2 * norb)
-    ]
-    x_expectations_expected = [statevector.expectation_value(op).real for op in x_ops]
-    y_expectations_expected = [statevector.expectation_value(op).real for op in y_ops]
-    z_expectations_expected = [statevector.expectation_value(op).real for op in z_ops]
+    final_state_qiskit = ffsim.qiskit.ffsim_vec_to_qiskit_vec(rotated_vec, norb, nelec)
 
     tensor = quimb.tensor.Tensor(
-        qiskit_vec.reshape([2] * 2 * norb),
-        inds=[f"k{i}" for i in range(2 * norb - 1, -1, -1)],
+        qiskit_vec.reshape([2] * 2 * norb).transpose(),
+        inds=[f"k{i}" for i in range(2 * norb)],
     )
     tn = quimb.tensor.TensorNetwork([tensor])
     psi0 = quimb.tensor.tensor_1d.TensorNetwork1DVector.from_TN(
@@ -69,16 +49,5 @@ def test_orbital_rotation(norb: int, nelec: tuple[int, int]):
     circuit.apply_gates(gates)
     circuit.apply_gates(gates)
 
-    x_expectations = [
-        circuit.local_expectation(quimb.pauli("X"), (i,)) for i in range(2 * norb)
-    ]
-    y_expectations = [
-        circuit.local_expectation(quimb.pauli("Y"), (i,)) for i in range(2 * norb)
-    ]
-    z_expectations = [
-        circuit.local_expectation(quimb.pauli("Z"), (i,)) for i in range(2 * norb)
-    ]
-
-    np.testing.assert_allclose(x_expectations, x_expectations_expected, atol=1e-12)
-    np.testing.assert_allclose(y_expectations, y_expectations_expected, atol=1e-12)
-    np.testing.assert_allclose(z_expectations, z_expectations_expected, atol=1e-12)
+    final_state = circuit.to_dense(reverse=True).reshape(-1)
+    ffsim.testing.assert_allclose_up_to_global_phase(final_state, final_state_qiskit)
