@@ -55,9 +55,15 @@ def quimb_gates(op: Instruction, qubits: list[int]) -> Iterator[quimb.tensor.Gat
     if op.name == "p":
         yield quimb.tensor.Gate("RZ", params=op.params, qubits=qubits)
     if op.name == "cp":
-        yield quimb.tensor.Gate("RZZ", params=op.params, qubits=qubits)
+        (theta,) = op.params
+        a, b = qubits
+        yield quimb.tensor.Gate("RZZ", params=[-theta], qubits=[a, b])
+        yield quimb.tensor.Gate("RZ", params=[theta], qubits=[a])
+        yield quimb.tensor.Gate("RZ", params=[theta], qubits=[b])
     if op.name == "xx_plus_yy":
-        theta, phi = op.params
-        yield quimb.tensor.Gate("RZ", params=[phi], qubits=qubits[0])
-        yield quimb.tensor.Gate("GIVENS", params=[theta], qubits=qubits)
-        yield quimb.tensor.Gate("RZ", params=[-phi], qubits=qubits[0])
+        theta, beta = op.params
+        phi = beta + 0.5 * math.pi
+        a, b = qubits
+        yield quimb.tensor.Gate("RZ", params=[phi], qubits=[a])
+        yield quimb.tensor.Gate("GIVENS", params=[0.5 * theta], qubits=[a, b])
+        yield quimb.tensor.Gate("RZ", params=[-phi], qubits=[a])

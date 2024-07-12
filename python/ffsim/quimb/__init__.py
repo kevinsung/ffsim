@@ -10,9 +10,14 @@
 
 """Code that uses quimb, e.g. for tensor network simulations."""
 
-from ffsim.quimb.gates import orbital_rotation_gates, prepare_hartree_fock_gates
+from ffsim.quimb.gates import (
+    orbital_rotation_gates,
+    prepare_hartree_fock_gates,
+    quimb_circuit,
+)
 
 __all__ = [
     "orbital_rotation_gates",
     "prepare_hartree_fock_gates",
+    "quimb_circuit",
 ]

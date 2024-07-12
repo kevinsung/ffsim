@@ -14,6 +14,9 @@ import numpy as np
 import pytest
 import quimb
 import quimb.tensor
+from qiskit.circuit import QuantumCircuit, QuantumRegister
+from qiskit.circuit.library import CPhaseGate, PhaseGate, XGate, XXPlusYYGate
+from qiskit.quantum_info import Statevector
 
 import ffsim
 
@@ -51,3 +54,20 @@ def test_orbital_rotation(norb: int, nelec: tuple[int, int]):
 
     final_state = circuit.to_dense(reverse=True).reshape(-1)
     ffsim.testing.assert_allclose_up_to_global_phase(final_state, final_state_qiskit)
+
+
+def test_quimb_circuit():
+    qubits = QuantumRegister(3)
+    circuit = QuantumCircuit(qubits)
+    a, b, c = qubits
+    circuit.append(XGate(), [a])
+    circuit.append(XXPlusYYGate(0.1, 0.2), [a, b])
+    circuit.append(PhaseGate(0.3), [b])
+    circuit.append(CPhaseGate(0.4), [b, c])
+
+    quimb_circuit = ffsim.quimb.quimb_circuit(circuit)
+
+    qiskit_vec = np.array(Statevector(circuit))
+    quimb_vec = quimb_circuit.to_dense(reverse=True).reshape(-1)
+
+    ffsim.testing.assert_allclose_up_to_global_phase(quimb_vec, qiskit_vec)
