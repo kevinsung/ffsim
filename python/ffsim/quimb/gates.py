@@ -41,29 +41,32 @@ def orbital_rotation_gates(orbital_rotation: np.ndarray) -> Iterator[quimb.tenso
 
 
 def quimb_circuit(circuit: QuantumCircuit) -> quimb.tensor.Circuit:
-    quimb_circuit = quimb.tensor.Circuit(circuit.num_qubits)
+    quimb_circ = quimb.tensor.Circuit(circuit.num_qubits)
     for instruction in circuit.data:
         op = instruction.operation
         qubits = [circuit.find_bit(qubit).index for qubit in instruction.qubits]
-        quimb_circuit.apply_gates(list(quimb_gates(op, qubits)))
-    return quimb_circuit
+        quimb_circ.apply_gates(list(quimb_gates(op, qubits)))
+    return quimb_circ
 
 
 def quimb_gates(op: Instruction, qubits: list[int]) -> Iterator[quimb.tensor.Gate]:
     if op.name == "x":
         yield quimb.tensor.Gate("X", params=[], qubits=qubits)
-    if op.name == "p":
-        yield quimb.tensor.Gate("RZ", params=op.params, qubits=qubits)
-    if op.name == "cp":
+    elif op.name == "p":
+        (theta,) = op.params
+        yield quimb.tensor.Gate("RZ", params=[theta], qubits=qubits)
+    elif op.name == "cp":
         (theta,) = op.params
         a, b = qubits
-        yield quimb.tensor.Gate("RZZ", params=[-theta], qubits=[a, b])
-        yield quimb.tensor.Gate("RZ", params=[theta], qubits=[a])
-        yield quimb.tensor.Gate("RZ", params=[theta], qubits=[b])
-    if op.name == "xx_plus_yy":
+        yield quimb.tensor.Gate("RZZ", params=[-0.5 * theta], qubits=[a, b])
+        yield quimb.tensor.Gate("RZ", params=[0.5 * theta], qubits=[a])
+        yield quimb.tensor.Gate("RZ", params=[0.5 * theta], qubits=[b])
+    elif op.name == "xx_plus_yy":
         theta, beta = op.params
         phi = beta + 0.5 * math.pi
         a, b = qubits
         yield quimb.tensor.Gate("RZ", params=[phi], qubits=[a])
         yield quimb.tensor.Gate("GIVENS", params=[0.5 * theta], qubits=[a, b])
         yield quimb.tensor.Gate("RZ", params=[-phi], qubits=[a])
+    else:
+        raise ValueError(f"Unsupported gate: {op.name}.")

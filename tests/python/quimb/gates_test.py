@@ -56,18 +56,69 @@ def test_orbital_rotation(norb: int, nelec: tuple[int, int]):
     ffsim.testing.assert_allclose_up_to_global_phase(final_state, final_state_qiskit)
 
 
-def test_quimb_circuit():
-    qubits = QuantumRegister(3)
+def test_quimb_circuit_basic():
+    """Test quimb circuit with basic gate."""
+    rng = np.random.default_rng(3377)
+    qubits = QuantumRegister(8)
     circuit = QuantumCircuit(qubits)
-    a, b, c = qubits
+    a, b, c, d, e, f, g, h = qubits
+
     circuit.append(XGate(), [a])
-    circuit.append(XXPlusYYGate(0.1, 0.2), [a, b])
-    circuit.append(PhaseGate(0.3), [b])
-    circuit.append(CPhaseGate(0.4), [b, c])
+    circuit.append(XXPlusYYGate(rng.uniform(-10, 10), rng.uniform(-10, 10)), [a, b])
+    circuit.append(PhaseGate(rng.uniform(-10, 10)), [b])
+    circuit.append(CPhaseGate(rng.uniform(-10, 10)), [b, c])
+    circuit.append(XGate(), [d])
+    circuit.append(XXPlusYYGate(rng.uniform(-10, 10), rng.uniform(-10, 10)), [e, f])
+    circuit.append(PhaseGate(rng.uniform(-10, 10)), [g])
+    circuit.append(CPhaseGate(rng.uniform(-10, 10)), [g, h])
+    circuit.append(XGate(), [f])
+    circuit.append(XXPlusYYGate(rng.uniform(-10, 10), rng.uniform(-10, 10)), [g, h])
 
     quimb_circuit = ffsim.quimb.quimb_circuit(circuit)
-
     qiskit_vec = np.array(Statevector(circuit))
     quimb_vec = quimb_circuit.to_dense(reverse=True).reshape(-1)
+    ffsim.testing.assert_allclose_up_to_global_phase(quimb_vec, qiskit_vec)
 
+
+def test_quimb_circuit_fermionic():
+    """Test quimb circuit with fermionic gates."""
+    rng = np.random.default_rng(7564)
+    norb = 4
+    nelec = (2, 2)
+    qubits = QuantumRegister(2 * norb)
+    circuit = QuantumCircuit(qubits)
+
+    orbital_rotation = ffsim.random.random_unitary(norb, seed=rng)
+    diag_coulomb_mat = ffsim.random.random_real_symmetric_matrix(norb, seed=rng)
+
+    circuit.append(ffsim.qiskit.PrepareHartreeFockJW(norb, nelec), qubits)
+    circuit.append(ffsim.qiskit.OrbitalRotationJW(norb, orbital_rotation), qubits)
+    circuit.append(
+        ffsim.qiskit.DiagCoulombEvolutionJW(norb, diag_coulomb_mat, time=1.0), qubits
+    )
+
+    quimb_circuit = ffsim.quimb.quimb_circuit(
+        circuit.decompose("hartree_fock_jw").decompose()
+    )
+    qiskit_vec = np.array(Statevector(circuit))
+    quimb_vec = quimb_circuit.to_dense(reverse=True).reshape(-1)
+    ffsim.testing.assert_allclose_up_to_global_phase(quimb_vec, qiskit_vec)
+
+
+def test_quimb_circuit_ucj():
+    """Test quimb circuit with UCJ circuit."""
+    rng = np.random.default_rng(7564)
+    norb = 4
+    nelec = (2, 2)
+    qubits = QuantumRegister(2 * norb)
+    circuit = QuantumCircuit(qubits)
+
+    ucj_op = ffsim.random.random_ucj_op_spin_balanced(norb=norb, n_reps=1, seed=rng)
+
+    circuit.append(ffsim.qiskit.PrepareHartreeFockJW(norb, nelec), qubits)
+    circuit.append(ffsim.qiskit.UCJOpSpinBalancedJW(ucj_op), qubits)
+
+    quimb_circuit = ffsim.quimb.quimb_circuit(circuit.decompose(reps=2))
+    qiskit_vec = np.array(Statevector(circuit))
+    quimb_vec = quimb_circuit.to_dense(reverse=True).reshape(-1)
     ffsim.testing.assert_allclose_up_to_global_phase(quimb_vec, qiskit_vec)
