@@ -3109,18 +3109,25 @@ lower triangular indices will raise an error.</p></li>
 <span class="n">norb</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">nelec</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">dim</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">dim</span><span class="p">(</span><span class="n">norb</span><span class="p">,</span> <span class="n">nelec</span><span class="p">)</span>
-<span class="n">strings</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">addresses_to_strings</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">),</span> <span class="n">norb</span><span class="p">,</span> <span class="n">nelec</span><span class="p">)</span>
-<span class="p">[</span><span class="nb">format</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;06b&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">strings</span><span class="p">]</span>
-<span class="c1"># output:</span>
-<span class="c1"># [&#39;001011&#39;,</span>
-<span class="c1">#  &#39;010011&#39;,</span>
-<span class="c1">#  &#39;100011&#39;,</span>
-<span class="c1">#  &#39;001101&#39;,</span>
-<span class="c1">#  &#39;010101&#39;,</span>
-<span class="c1">#  &#39;100101&#39;,</span>
-<span class="c1">#  &#39;001110&#39;,</span>
-<span class="c1">#  &#39;010110&#39;,</span>
-<span class="c1">#  &#39;100110&#39;]</span>
+
+<span class="n">strings</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">addresses_to_strings</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">norb</span><span class="p">,</span> <span class="n">nelec</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>  <span class="c1"># prints [11, 19, 35, 13, 21]</span>
+
+<span class="n">strings</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">addresses_to_strings</span><span class="p">(</span>
+    <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">norb</span><span class="p">,</span> <span class="n">nelec</span><span class="p">,</span> <span class="n">bitstring_type</span><span class="o">=</span><span class="n">ffsim</span><span class="o">.</span><span class="n">BitstringType</span><span class="o">.</span><span class="n">STRING</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>  <span class="c1"># prints [&#39;001011&#39;, &#39;010011&#39;, &#39;100011&#39;, &#39;001101&#39;, &#39;010101&#39;]</span>
+
+<span class="n">strings</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">addresses_to_strings</span><span class="p">(</span>
+    <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">norb</span><span class="p">,</span> <span class="n">nelec</span><span class="p">,</span> <span class="n">bitstring_type</span><span class="o">=</span><span class="n">ffsim</span><span class="o">.</span><span class="n">BitstringType</span><span class="o">.</span><span class="n">BIT_ARRAY</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span>
+<span class="c1"># prints</span>
+<span class="c1"># [[False False  True False  True  True]</span>
+<span class="c1">#  [False  True False False  True  True]</span>
+<span class="c1">#  [ True False False False  True  True]</span>
+<span class="c1">#  [False False  True  True False  True]</span>
+<span class="c1">#  [False  True False  True False  True]]</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -3140,6 +3147,10 @@ If False, then two lists are returned, <code class="docutils literal notranslate
 the list of alpha strings appears first, that is, on the left.
 In the spinless case (when <cite>nelec</cite> is an integer), this argument is ignored.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The bitstrings. The type of the output depends on <cite>bitstring_type</cite> and
+<cite>concatenate</cite>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -4820,6 +4831,9 @@ and spin beta fermions.</p></li>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The state vector addresses, as a Numpy array of integers.</p>
 </dd>
 </dl>
 </dd></dl>
