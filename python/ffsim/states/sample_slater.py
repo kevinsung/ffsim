@@ -12,11 +12,11 @@
 
 from __future__ import annotations
 
-import itertools
 from collections.abc import Sequence
 from typing import cast
 
 import numpy as np
+from dppy.finite.dpp import FiniteDPP
 
 from ffsim.states.bitstring import (
     BitstringType,
@@ -159,55 +159,13 @@ def _sample_slater_spinless(
     if nelec == norb:
         return [(1 << norb) - 1] * shots
 
-    rng = np.random.default_rng(seed)
-    samples = [_autoregressive_slater(rdm, norb, nelec, rng) for _ in range(shots)]
-    return [sum(1 << orb for orb in sample) for sample in samples]
-
-
-def _autoregressive_slater(
-    rdm: np.ndarray,
-    norb: int,
-    nelec: int,
-    seed: np.random.Generator | int | None = None,
-) -> set[int]:
-    """Autoregressively sample occupied orbitals for a Slater determinant.
-
-    Args:
-        rdm: The one-body reduced density matrix.
-        norb: The number of orbitals.
-        nelec: The number of electrons.
-        seed: A seed to initialize the pseudorandom number generator.
-            Should be a valid input to ``np.random.default_rng``.
-
-    Returns:
-        A set containing the occupied orbitals.
-    """
-    rng = np.random.default_rng(seed)
-    orb = rng.choice(norb, p=np.diag(rdm).real / nelec)
-    sample = {orb}
-    for i in range(nelec - 1):
-        index = rng.choice(norb - 1 - i, p=_generate_probs(rdm, sample, norb))
-        empty_orbitals = (orb for orb in range(norb) if orb not in sample)
-        sample.add(next(itertools.islice(empty_orbitals, index, None)))
-    return sample
-
-
-def _generate_probs(rdm: np.ndarray, sample: set[int], norb: int) -> np.ndarray:
-    """Computes the probabilities for the next occupied orbital.
-
-    This is a step of the autoregressive sampling, and uses Bayes's rule.
-
-    Args:
-        rdm: A Numpy array with the one-body reduced density matrix.
-        sample: The list of already occupied orbitals.
-        norb: The number of orbitals.
-
-    Returns:
-        The probabilities for the next empty orbital to occupy.
-    """
-    probs = np.zeros(norb - len(sample))
-    empty_orbitals = (orb for orb in range(norb) if orb not in sample)
-    for i, orb in enumerate(empty_orbitals):
-        indices = list(sample | {orb})
-        probs[i] = np.linalg.det(rdm[indices][:, indices]).real
-    return probs / np.sum(probs)
+    # rng = np.random.default_rng(seed)
+    dpp = FiniteDPP(
+        kernel_type="likelihood",
+        projection=False,
+        hermitian=True,
+        L=rdm,
+    )
+    for _ in range(shots):
+        dpp.sample_exact_k_dpp(nelec, method="spectral")
+    return [sum(1 << orb for orb in sample) for sample in dpp.list_of_samples]
