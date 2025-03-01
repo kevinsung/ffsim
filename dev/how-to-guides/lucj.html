@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="How to simulate entanglement forging" href="entanglement-forging.html" /><link rel="prev" title="How-to guides" href="index.html" />
 
-    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+    <!-- Generated with Sphinx 8.2.1 and Furo 2024.08.06 -->
         <title>How to simulate the local unitary cluster Jastrow (LUCJ) ansatz - ffsim 0.0.50.dev0</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
@@ -331,7 +331,7 @@
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 converged SCF energy = -77.8266321248744
-Parsing /tmp/tmp1c5ilmfv
+Parsing /tmp/tmpurxqyog3
 converged SCF energy = -77.8266321248744
 CASCI E = -77.8742165643862  E(CI) = -4.02122442107773  S^2 = 0.0000000
 norb = 4
@@ -388,8 +388,8 @@ Overwritten attributes  get_hcore get_ovlp  of &lt;class &#39;pyscf.scf.hf.RHF&#
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-E(CCSD) = -77.87421536374028  E_corr = -0.04758323886584406
-Energy at initialization: -77.87160024816275
+E(CCSD) = -77.87421536374028  E_corr = -0.04758323886584202
+Energy at initialization: -77.87160024816265
 </pre></div></div>
 </div>
 <p>To variationally optimize the ansatz, we’ll take advantage of methods for conversion to and from real-valued parameter vectors. In the following code cell, we define an objective function that takes a parameter vector as input and outputs the energy of the associated ansatz state. We then optimize this objective function using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>, with an initial guess obtained from the operator we initialized previously from t2 amplitudes.</p>
@@ -427,10 +427,10 @@ Number of parameters: 72
   message: STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
   success: False
    status: 1
-      fun: -77.87387392547606
-        x: [-4.774e-01 -1.008e-04 ...  1.428e-04  1.287e-01]
+      fun: -77.87387392660082
+        x: [-1.153e+00 -4.245e-04 ...  2.304e-04  1.286e-01]
       nit: 10
-      jac: [ 3.553e-05  3.411e-05 ...  1.279e-05  2.842e-05]
+      jac: [-1.279e-05 -1.421e-06 ...  2.842e-06  7.105e-06]
      nfev: 949
      njev: 13
  hess_inv: &lt;72x72 LbfgsInvHessProduct with dtype=float64&gt;
@@ -478,10 +478,10 @@ Number of parameters: 46
   message: CONVERGENCE: RELATIVE REDUCTION OF F &lt;= FACTR*EPSMCH
   success: True
    status: 0
-      fun: -77.87363426526439
-        x: [-4.774e-01  8.638e-05 ...  3.520e-02  2.561e-01]
+      fun: -77.87363426253346
+        x: [-1.152e+00  1.589e-05 ...  3.520e-02  2.561e-01]
       nit: 5
-      jac: [ 2.558e-05  3.695e-05 ...  1.421e-06 -7.105e-06]
+      jac: [ 4.263e-06  0.000e+00 ... -1.421e-06 -5.684e-06]
      nfev: 329
      njev: 7
  hess_inv: &lt;46x46 LbfgsInvHessProduct with dtype=float64&gt;
@@ -559,29 +559,29 @@ Hamiltonian representing the energy to be optimized as a <code class="docutils l
 Number of parameters: 46
  message: Convergence: Relative reduction of objective function &lt;= ftol.
  success: True
-     fun: -77.87363431788829
-       x: [-4.776e-01  1.781e-04 ...  3.495e-02  2.558e-01]
+     fun: -77.87363430534681
+       x: [-1.151e+00  3.376e-04 ...  3.413e-02  2.562e-01]
      nit: 3
-     jac: [-1.671e-06  2.172e-06 ... -4.290e-07 -8.903e-08]
-    nfev: 544
+     jac: [ 8.650e-06  1.096e-05 ... -9.074e-07 -2.207e-06]
+    nfev: 460
     njev: 4
-  nlinop: 360
+  nlinop: 276
 
 Iteration 1
-    Energy: -77.8736321253599
-    Norm of gradient: 0.0009920203716870977
-    Regularization hyperparameter: 0.001813945923162573
-    Variation hyperparameter: 0.9999991383732288
+    Energy: -77.87362780620265
+    Norm of gradient: 0.0018645421320570153
+    Regularization hyperparameter: 0.000855598631536861
+    Variation hyperparameter: 0.9830027956560634
 Iteration 2
-    Energy: -77.87363429676101
-    Norm of gradient: 5.736946177067118e-05
-    Regularization hyperparameter: 0.0020858525417840534
-    Variation hyperparameter: 0.9999986838352123
+    Energy: -77.87363383688809
+    Norm of gradient: 0.0001946273164445463
+    Regularization hyperparameter: 0.010571591490218043
+    Variation hyperparameter: 0.9837019866337978
 Iteration 3
-    Energy: -77.87363431788829
-    Norm of gradient: 1.2667806228413597e-05
-    Regularization hyperparameter: 0.009789028041604395
-    Variation hyperparameter: 0.99999890255684
+    Energy: -77.87363430534681
+    Norm of gradient: 5.2460281820976673e-05
+    Regularization hyperparameter: 0.0012607284354556763
+    Variation hyperparameter: 0.9785858976299379
 </pre></div></div>
 </div>
 </section>
@@ -662,7 +662,5 @@ Iteration 3
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>
