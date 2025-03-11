@@ -10,6 +10,7 @@
 
 """Linear algebra utilities."""
 
+from ffsim.linalg.davidson import davidson1
 from ffsim.linalg.double_factorized_decomposition import (
     double_factorized,
     double_factorized_t2,
@@ -40,6 +41,7 @@ from ffsim.linalg.predicates import (
 __all__ = [
     "GivensRotation",
     "apply_matrix_to_slices",
+    "davidson1",
     "double_factorized",
     "double_factorized_t2",
     "double_factorized_t2_alpha_beta",
