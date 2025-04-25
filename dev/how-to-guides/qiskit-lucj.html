@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="API reference" href="../api/index.html" /><link rel="prev" title="How to build and transpile Qiskit quantum circuits" href="qiskit-circuits.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="How to simulate excitation-preserving Qiskit circuits" href="qiskit-circuits-sim.html" /><link rel="prev" title="How to use the FermionOperator class" href="fermion-operator.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>How to use ffsim’s Qiskit Sampler primitive - ffsim 0.0.53.dev0</title>
+        <title>How to build Qiskit circuits for the LUCJ ansatz - ffsim 0.0.53.dev0</title>
       <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/qiskit-sphinx-theme.css?v=8ff9dcb6" />
@@ -205,18 +205,19 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../explanations/index.html">Explanations</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Explanations</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../explanations/state-vectors-and-gates.html">State vectors and gates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../explanations/hamiltonians.html">Hamiltonians</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../explanations/orbital-rotation.html">Orbital rotations and quadratic Hamiltonians</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../explanations/orbital-rotation.html">Orbital rotations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../explanations/double-factorized.html">Double-factorized representation of the molecular Hamiltonian</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../explanations/lucj.html">The local unitary cluster Jastrow (LUCJ) ansatz</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../explanations/qiskit-gate-decompositions.html">Qubit gate decompositions of fermionic gates</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">How-to guides</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of How-to guides</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="lucj.html">How to simulate the local unitary cluster Jastrow (LUCJ) ansatz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulate-lucj.html">How to simulate the local unitary cluster Jastrow (LUCJ) ansatz</a></li>
 <li class="toctree-l2"><a class="reference internal" href="entanglement-forging.html">How to simulate entanglement forging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fermion-operator.html">How to use the FermionOperator class</a></li>
-<li class="toctree-l2"><a class="reference internal" href="qiskit-circuits.html">How to build and transpile Qiskit quantum circuits</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">How to use ffsim’s Qiskit Sampler primitive</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">How to build Qiskit circuits for the LUCJ ansatz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qiskit-circuits-sim.html">How to simulate excitation-preserving Qiskit circuits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="qiskit-merge-orbital-rotations.html">How to merge orbital rotations in Qiskit circuits</a></li>
 </ul>
 </li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API reference</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of API reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
@@ -251,12 +252,12 @@
         </a>
         <div class="content-icon-container">
           <div class="view-this-page">
-  <a class="muted-link" href="https://github.com/qiskit-community/ffsim/blob/main/docs/how-to-guides/qiskit-sampler.ipynb?plain=true" title="View this page">
+  <a class="muted-link" href="https://github.com/qiskit-community/ffsim/blob/main/docs/how-to-guides/qiskit-lucj.ipynb?plain=true" title="View this page">
     <svg><use href="#svg-eye"></use></svg>
     <span class="visually-hidden">View this page</span>
   </a>
 </div><div class="edit-this-page">
-  <a class="muted-link" href="https://github.com/qiskit-community/ffsim/edit/main/docs/how-to-guides/qiskit-sampler.ipynb" title="Edit this page">
+  <a class="muted-link" href="https://github.com/qiskit-community/ffsim/edit/main/docs/how-to-guides/qiskit-lucj.ipynb" title="Edit this page">
     <svg><use href="#svg-pencil"></use></svg>
     <span class="visually-hidden">Edit this page</span>
   </a>
@@ -275,187 +276,30 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="How-to-use-ffsim's-Qiskit-Sampler-primitive">
-<h1>How to use ffsim’s Qiskit Sampler primitive<a class="headerlink" href="#How-to-use-ffsim's-Qiskit-Sampler-primitive" title="Link to this heading">¶</a></h1>
-<p>In this guide, we show how to use <a class="reference internal" href="../api/ffsim.qiskit.html#ffsim.qiskit.FfsimSampler"><span class="std std-ref">FfsimSampler</span></a>, ffsim’s implementation of the Qiskit <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/qiskit.primitives.BaseSamplerV2">Sampler primitive</a>, to sample from quantum circuits constructed using Qiskit. ffsim cannot sample from arbitrary Qiskit circuits. See the <a class="reference internal" href="../api/ffsim.qiskit.html#ffsim.qiskit.FfsimSampler"><span class="std std-ref">documentation</span></a> for a description of what kinds of circuits are supported.</p>
-<section id="Examples">
-<h2>Examples<a class="headerlink" href="#Examples" title="Link to this heading">¶</a></h2>
-<section id="Circuit-with-gates-from-the-ffsim.qiskit-module">
-<h3>Circuit with gates from the <code class="docutils literal notranslate"><span class="pre">ffsim.qiskit</span></code> module<a class="headerlink" href="#Circuit-with-gates-from-the-ffsim.qiskit-module" title="Link to this heading">¶</a></h3>
-<p>First, let’s create an example circuit using gates from the <a class="reference internal" href="../api/ffsim.qiskit.html"><span class="doc">ffsim.qiskit</span></a> module.</p>
+          <section id="How-to-build-Qiskit-circuits-for-the-LUCJ-ansatz">
+<h1>How to build Qiskit circuits for the LUCJ ansatz<a class="headerlink" href="#How-to-build-Qiskit-circuits-for-the-LUCJ-ansatz" title="Link to this heading">¶</a></h1>
+<p>This guide provides some examples of building and transpiling Qiskit circuits to implement the <a class="reference internal" href="../explanations/lucj.html"><span class="doc">LUCJ ansatz</span></a>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyscf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">QuantumRegister</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.providers.fake_provider</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenericBackendV2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.transpiler.preset_passmanagers</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_preset_pass_manager</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">ffsim</span>
-
-<span class="c1"># Set the number of spatial orbitals and the numbers of alpha and beta electrons</span>
-<span class="n">norb</span> <span class="o">=</span> <span class="mi">16</span>
-<span class="n">nelec</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-<span class="n">n_alpha</span><span class="p">,</span> <span class="n">n_beta</span> <span class="o">=</span> <span class="n">nelec</span>
-
-<span class="c1"># Generate some random data</span>
-<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">12345</span><span class="p">)</span>
-<span class="n">orbital_rotation</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_unitary</span><span class="p">(</span><span class="n">norb</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
-<span class="n">diag_coulomb_mat</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random_real_symmetric_matrix</span><span class="p">(</span><span class="n">norb</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
-
-<span class="c1"># Create an example circuit</span>
-<span class="n">qubits</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">norb</span><span class="p">)</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span>
-<span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-    <span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">PrepareSlaterDeterminantJW</span><span class="p">(</span>
-        <span class="n">norb</span><span class="p">,</span>
-        <span class="n">occupied_orbitals</span><span class="o">=</span><span class="p">[</span><span class="nb">range</span><span class="p">(</span><span class="n">n_alpha</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_beta</span><span class="p">)],</span>
-        <span class="n">orbital_rotation</span><span class="o">=</span><span class="n">orbital_rotation</span><span class="p">,</span>
-    <span class="p">),</span>
-    <span class="n">qubits</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-    <span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">DiagCoulombEvolutionJW</span><span class="p">(</span><span class="n">norb</span><span class="p">,</span> <span class="n">diag_coulomb_mat</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">qubits</span>
-<span class="p">)</span>
-<span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">OrbitalRotationJW</span><span class="p">(</span><span class="n">norb</span><span class="p">,</span> <span class="n">orbital_rotation</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">conj</span><span class="p">()),</span> <span class="n">qubits</span><span class="p">)</span>
-<span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<p>Now, we initialize the ffsim Sampler and use it to sample 10,000 shots from our circuit. The input to the Sampler is a list of <a class="reference external" href="https://docs.quantum.ibm.com/api/qiskit/primitives#overview-of-samplerv2">primitive unified blocs</a>, or PUBs. In the cell output we display only the top 10 most commonly encountered bitstrings.</p>
+<section id="LUCJ-circuit-for-a-closed-shell-molecule">
+<h2>LUCJ circuit for a closed-shell molecule<a class="headerlink" href="#LUCJ-circuit-for-a-closed-shell-molecule" title="Link to this heading">¶</a></h2>
+<p>For a closed-shell system, use the spin-balanced LUCJ ansatz. This example creates an LUCJ circuit for a nitrogen molecule in the 6-31g basis.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize ffsim Sampler</span>
-<span class="n">sampler</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">FfsimSampler</span><span class="p">(</span><span class="n">default_shots</span><span class="o">=</span><span class="mi">10_000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
-
-<span class="c1"># Form PUB, submit job, retrieve job result, and extract first (and only) PUB result</span>
-<span class="n">pub</span> <span class="o">=</span> <span class="p">(</span><span class="n">circuit</span><span class="p">,)</span>
-<span class="n">job</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">pub</span><span class="p">])</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-<span class="c1"># Get counts</span>
-<span class="n">counts</span> <span class="o">=</span> <span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">meas</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
-
-<span class="c1"># Display the 10 most commonly seen bitstrings and their counts</span>
-<span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]}</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;10001001000000100000010011000010&#39;: 2,
- &#39;10000000000101101000000000011100&#39;: 2,
- &#39;00000011100010001000010000000110&#39;: 2,
- &#39;00001000001000110000001000001110&#39;: 2,
- &#39;10000000101001000000001001011000&#39;: 2,
- &#39;10101001000000001100000101000000&#39;: 2,
- &#39;00100000001101000000000100011001&#39;: 2,
- &#39;00010001100000010000110100000100&#39;: 2,
- &#39;00010100000110000101010000000100&#39;: 2,
- &#39;01010010000010000000001011001000&#39;: 2}
-</pre></div></div>
-</div>
-</section>
-<section id="Circuit-with-gates-from-the-Qiskit-circuit-library">
-<h3>Circuit with gates from the Qiskit circuit library<a class="headerlink" href="#Circuit-with-gates-from-the-Qiskit-circuit-library" title="Link to this heading">¶</a></h3>
-<p>Here, we show that FfsimSampler can sample from certain circuits with gates from the Qiskit circuit library.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit.circuit.library</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">CPhaseGate</span><span class="p">,</span>
-    <span class="n">PhaseGate</span><span class="p">,</span>
-    <span class="n">RZGate</span><span class="p">,</span>
-    <span class="n">RZZGate</span><span class="p">,</span>
-    <span class="n">XGate</span><span class="p">,</span>
-    <span class="n">XXPlusYYGate</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">n_qubits</span> <span class="o">=</span> <span class="mi">60</span>
-
-<span class="c1"># Construct circuit</span>
-<span class="n">qubits</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">)</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="n">qubits</span><span class="p">)</span>
-
-<span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">XGate</span><span class="p">(),</span> <span class="p">[</span><span class="n">qubits</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-    <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">XXPlusYYGate</span><span class="p">(</span><span class="o">*</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">)),</span> <span class="n">qubits</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>
-<span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
-    <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PhaseGate</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span> <span class="p">[</span><span class="n">q</span><span class="p">])</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-    <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CPhaseGate</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span> <span class="n">qubits</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>
-<span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">qubits</span><span class="p">:</span>
-    <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RZGate</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span> <span class="p">[</span><span class="n">q</span><span class="p">])</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-    <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RZZGate</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)),</span> <span class="n">qubits</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_qubits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-    <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">XXPlusYYGate</span><span class="p">(</span><span class="o">*</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">)),</span> <span class="n">qubits</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>
-<span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize ffsim Sampler</span>
-<span class="n">sampler</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">FfsimSampler</span><span class="p">(</span><span class="n">default_shots</span><span class="o">=</span><span class="mi">10_000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
-
-<span class="c1"># Form PUB, submit job, retrieve job result, and extract first (and only) PUB result</span>
-<span class="n">pub</span> <span class="o">=</span> <span class="p">(</span><span class="n">circuit</span><span class="p">,)</span>
-<span class="n">job</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">pub</span><span class="p">])</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-<span class="c1"># Get counts</span>
-<span class="n">counts</span> <span class="o">=</span> <span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">meas</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
-
-<span class="c1"># Display the 10 most commonly seen bitstrings and their counts</span>
-<span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]}</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;000000000000000000000000000000000000000000000000000000000001&#39;: 6353,
- &#39;000000000000000000000000000000000000000000000000000000001000&#39;: 1355,
- &#39;000000000000000000000000000000000000000000000000000000000010&#39;: 1142,
- &#39;000000000000000000000000000000000000000000000000000000000100&#39;: 464,
- &#39;000000000000000000000000000000000000000000000000000000100000&#39;: 383,
- &#39;000000000000000000000000000000000000000000000000000000010000&#39;: 198,
- &#39;000000000000000000000000000000000000000000000000000010000000&#39;: 48,
- &#39;000000000000000000000000000000000000000000000000000001000000&#39;: 41,
- &#39;000000000000000000000000000000000000000000000000001000000000&#39;: 14,
- &#39;000000000000000000000000000000000000000000000000010000000000&#39;: 1}
-</pre></div></div>
-</div>
-</section>
-</section>
-<section id="More-examples">
-<h2>More examples<a class="headerlink" href="#More-examples" title="Link to this heading">¶</a></h2>
-<section id="Sampling-from-an-LUCJ-circuit-for-a-closed-shell-molecule">
-<h3>Sampling from an LUCJ circuit for a closed-shell molecule<a class="headerlink" href="#Sampling-from-an-LUCJ-circuit-for-a-closed-shell-molecule" title="Link to this heading">¶</a></h3>
-<p>The following code cell demonstrates a possible workflow for sampling from a <a class="reference internal" href="../explanations/lucj.html"><span class="doc">spin-balanced LUCJ</span></a> circuit for a nitrogen molecule in the 6-31g basis.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyscf</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pyscf.cc</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pyscf.data.elements</span>
-
-<span class="c1"># Build N2 molecule</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build N2 molecule</span>
 <span class="n">mol</span> <span class="o">=</span> <span class="n">pyscf</span><span class="o">.</span><span class="n">gto</span><span class="o">.</span><span class="n">Mole</span><span class="p">()</span>
 <span class="n">mol</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
     <span class="n">atom</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)],</span> <span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]],</span>
@@ -464,7 +308,7 @@
 <span class="p">)</span>
 
 <span class="c1"># Define active space</span>
-<span class="n">n_frozen</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">n_frozen</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="n">active_space</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_frozen</span><span class="p">,</span> <span class="n">mol</span><span class="o">.</span><span class="n">nao_nr</span><span class="p">())</span>
 
 <span class="c1"># Get molecular data and Hamiltonian</span>
@@ -496,16 +340,14 @@
 <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">UCJOpSpinBalancedJW</span><span class="p">(</span><span class="n">ucj_op</span><span class="p">),</span> <span class="n">qubits</span><span class="p">)</span>
 <span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 
-<span class="c1"># Sample 10,000 shots from the circuit using FfsimSampler</span>
-<span class="n">sampler</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">FfsimSampler</span><span class="p">(</span><span class="n">default_shots</span><span class="o">=</span><span class="mi">10_000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12345</span><span class="p">)</span>
-<span class="n">pub</span> <span class="o">=</span> <span class="p">(</span><span class="n">circuit</span><span class="p">,)</span>
-<span class="n">job</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">pub</span><span class="p">])</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">counts</span> <span class="o">=</span> <span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">meas</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
+<span class="c1"># Create a generic backend and transpile the circuit to it</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">GenericBackendV2</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">norb</span><span class="p">,</span> <span class="n">basis_gates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cp&quot;</span><span class="p">,</span> <span class="s2">&quot;xx_plus_yy&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">])</span>
+<span class="n">pass_manager</span> <span class="o">=</span> <span class="n">generate_preset_pass_manager</span><span class="p">(</span><span class="n">optimization_level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span>
+<span class="c1"># Set the pre-initialization stage of the pass manager with passes suggested by ffsim</span>
+<span class="n">pass_manager</span><span class="o">.</span><span class="n">pre_init</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">PRE_INIT</span>
+<span class="n">transpiled</span> <span class="o">=</span> <span class="n">pass_manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 
-<span class="c1"># Display the 10 most commonly seen bitstrings and their counts</span>
-<span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]}</span>
+<span class="n">transpiled</span><span class="o">.</span><span class="n">count_ops</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -515,42 +357,35 @@
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 converged SCF energy = -108.835236570775
-norb = 14
-nelec = (3, 3)
-E(CCSD) = -108.9630419334855  E_corr = -0.1278053627110062
+norb = 16
+nelec = (5, 5)
+E(CCSD) = -109.0398256929734  E_corr = -0.2045891221988305
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;0000000000011100000000000111&#39;: 9924,
- &#39;0000000000110100000000001101&#39;: 16,
- &#39;0000000001110000000000000111&#39;: 10,
- &#39;0000000000011100000000011100&#39;: 10,
- &#39;0000000001011000000000010110&#39;: 10,
- &#39;0001000001010000000000000111&#39;: 5,
- &#39;0000000001011000100000000110&#39;: 4,
- &#39;0100000001001000000000000111&#39;: 3,
- &#39;0000000000011100100000001100&#39;: 3,
- &#39;0010000000011000000000010110&#39;: 3}
+OrderedDict([(&#39;xx_plus_yy&#39;, 580),
+             (&#39;p&#39;, 64),
+             (&#39;cp&#39;, 52),
+             (&#39;measure&#39;, 32),
+             (&#39;x&#39;, 10),
+             (&#39;barrier&#39;, 1)])
 </pre></div></div>
 </div>
 </section>
-<section id="Sampling-from-an-LUCJ-circuit-for-an-open-shell-molecule">
-<h3>Sampling from an LUCJ circuit for an open-shell molecule<a class="headerlink" href="#Sampling-from-an-LUCJ-circuit-for-an-open-shell-molecule" title="Link to this heading">¶</a></h3>
-<p>The following code cell demonstrates a possible workflow for sampling from a <a class="reference internal" href="../explanations/lucj.html"><span class="doc">spin-unbalanced LUCJ</span></a> circuit for a hydroxyl radical in the 6-31g basis.</p>
+<section id="LUCJ-circuit-for-an-open-shell-molecule">
+<h2>LUCJ circuit for an open-shell molecule<a class="headerlink" href="#LUCJ-circuit-for-an-open-shell-molecule" title="Link to this heading">¶</a></h2>
+<p>For an open-shell system, use the spin-unbalanced LUCJ ansatz. This example creates an LUCJ circuit for a hydroxyl radical in the 6-31g basis.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyscf.data.elements</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pyscf</span><span class="w"> </span><span class="kn">import</span> <span class="n">cc</span><span class="p">,</span> <span class="n">gto</span>
-
-<span class="c1"># Build HO molecule</span>
-<span class="n">mol</span> <span class="o">=</span> <span class="n">gto</span><span class="o">.</span><span class="n">Mole</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build HO molecule</span>
+<span class="n">mol</span> <span class="o">=</span> <span class="n">pyscf</span><span class="o">.</span><span class="n">gto</span><span class="o">.</span><span class="n">Mole</span><span class="p">()</span>
 <span class="n">mol</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
     <span class="n">atom</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)],</span> <span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">)]],</span>
     <span class="n">basis</span><span class="o">=</span><span class="s2">&quot;6-31g&quot;</span><span class="p">,</span>
@@ -567,7 +402,7 @@ E(CCSD) = -108.9630419334855  E_corr = -0.1278053627110062
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nelec = </span><span class="si">{</span><span class="n">nelec</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="c1"># Get CCSD t2 amplitudes for initializing the ansatz</span>
-<span class="n">ccsd</span> <span class="o">=</span> <span class="n">cc</span><span class="o">.</span><span class="n">CCSD</span><span class="p">(</span><span class="n">scf</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">ccsd</span> <span class="o">=</span> <span class="n">pyscf</span><span class="o">.</span><span class="n">cc</span><span class="o">.</span><span class="n">CCSD</span><span class="p">(</span><span class="n">scf</span><span class="p">)</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 
 <span class="c1"># Use 4 layers from opposite-spin amplitudes and 2 layers from same-spin amplitudes</span>
 <span class="n">n_reps</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -586,16 +421,14 @@ E(CCSD) = -108.9630419334855  E_corr = -0.1278053627110062
 <span class="n">circuit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">UCJOpSpinUnbalancedJW</span><span class="p">(</span><span class="n">ucj_op</span><span class="p">),</span> <span class="n">qubits</span><span class="p">)</span>
 <span class="n">circuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">()</span>
 
-<span class="c1"># Sample 10,000 shots from the circuit using FfsimSampler</span>
-<span class="n">sampler</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">FfsimSampler</span><span class="p">(</span><span class="n">default_shots</span><span class="o">=</span><span class="mi">10_000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">12345</span><span class="p">)</span>
-<span class="n">pub</span> <span class="o">=</span> <span class="p">(</span><span class="n">circuit</span><span class="p">,)</span>
-<span class="n">job</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">pub</span><span class="p">])</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-<span class="n">pub_result</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">counts</span> <span class="o">=</span> <span class="n">pub_result</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">meas</span><span class="o">.</span><span class="n">get_counts</span><span class="p">()</span>
+<span class="c1"># Create a generic backend and transpile the circuit to it</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">GenericBackendV2</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">norb</span><span class="p">,</span> <span class="n">basis_gates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cp&quot;</span><span class="p">,</span> <span class="s2">&quot;xx_plus_yy&quot;</span><span class="p">,</span> <span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">])</span>
+<span class="n">pass_manager</span> <span class="o">=</span> <span class="n">generate_preset_pass_manager</span><span class="p">(</span><span class="n">optimization_level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">)</span>
+<span class="c1"># Set the pre-initialization stage of the pass manager with passes suggested by ffsim</span>
+<span class="n">pass_manager</span><span class="o">.</span><span class="n">pre_init</span> <span class="o">=</span> <span class="n">ffsim</span><span class="o">.</span><span class="n">qiskit</span><span class="o">.</span><span class="n">PRE_INIT</span>
+<span class="n">transpiled</span> <span class="o">=</span> <span class="n">pass_manager</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 
-<span class="c1"># Display the 10 most commonly seen bitstrings and their counts</span>
-<span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]}</span>
+<span class="n">transpiled</span><span class="o">.</span><span class="n">count_ops</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -605,33 +438,29 @@ E(CCSD) = -108.9630419334855  E_corr = -0.1278053627110062
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 SCF not converged.
-SCF energy = -75.3484557075168
+SCF energy = -75.3484557056626
 norb = 11
 nelec = (5, 4)
 
 WARN: RCCSD method does not support ROHF method. ROHF object is converted to UHF object and UCCSD method is called.
 
-E(UCCSD) = -75.4561973911847  E_corr = -0.107741683667922
+E(UCCSD) = -75.45619739150845  E_corr = -0.1077416858458585
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-{&#39;0000000111100000011111&#39;: 9991,
- &#39;0000100101100000111011&#39;: 2,
- &#39;0000100110100000111011&#39;: 1,
- &#39;0100000110100100001111&#39;: 1,
- &#39;0101000001100000011111&#39;: 1,
- &#39;0000010110100001011011&#39;: 1,
- &#39;1000000101100000111011&#39;: 1,
- &#39;0000000111100110000111&#39;: 1,
- &#39;0000010101100001011011&#39;: 1}
+OrderedDict([(&#39;xx_plus_yy&#39;, 696),
+             (&#39;p&#39;, 112),
+             (&#39;cp&#39;, 108),
+             (&#39;measure&#39;, 22),
+             (&#39;x&#39;, 9),
+             (&#39;barrier&#39;, 1)])
 </pre></div></div>
 </div>
-</section>
 </section>
 </section>
 
@@ -640,23 +469,23 @@ E(UCCSD) = -75.4561973911847  E_corr = -0.107741683667922
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../api/index.html">
+          <a class="next-page" href="qiskit-circuits-sim.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">API reference</div>
+                <div class="title">How to simulate excitation-preserving Qiskit circuits</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="qiskit-circuits.html">
+          <a class="prev-page" href="fermion-operator.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">How to build and transpile Qiskit quantum circuits</div>
+                <div class="title">How to use the FermionOperator class</div>
                 
               </div>
             </a>
@@ -690,17 +519,9 @@ E(UCCSD) = -75.4561973911847  E_corr = -0.107741683667922
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">How to use ffsim’s Qiskit Sampler primitive</a><ul>
-<li><a class="reference internal" href="#Examples">Examples</a><ul>
-<li><a class="reference internal" href="#Circuit-with-gates-from-the-ffsim.qiskit-module">Circuit with gates from the <code class="docutils literal notranslate"><span class="pre">ffsim.qiskit</span></code> module</a></li>
-<li><a class="reference internal" href="#Circuit-with-gates-from-the-Qiskit-circuit-library">Circuit with gates from the Qiskit circuit library</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#More-examples">More examples</a><ul>
-<li><a class="reference internal" href="#Sampling-from-an-LUCJ-circuit-for-a-closed-shell-molecule">Sampling from an LUCJ circuit for a closed-shell molecule</a></li>
-<li><a class="reference internal" href="#Sampling-from-an-LUCJ-circuit-for-an-open-shell-molecule">Sampling from an LUCJ circuit for an open-shell molecule</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#">How to build Qiskit circuits for the LUCJ ansatz</a><ul>
+<li><a class="reference internal" href="#LUCJ-circuit-for-a-closed-shell-molecule">LUCJ circuit for a closed-shell molecule</a></li>
+<li><a class="reference internal" href="#LUCJ-circuit-for-an-open-shell-molecule">LUCJ circuit for an open-shell molecule</a></li>
 </ul>
 </li>
 </ul>
