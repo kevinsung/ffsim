@@ -27,6 +27,8 @@ from ffsim.qiskit.gates.diag_coulomb import (
     DiagCoulombEvolutionJW,
     DiagCoulombEvolutionSpinlessJW,
 )
+from ffsim.qiskit.gates.givens_ansatz import GivensAnsatzOpJW
+from ffsim.qiskit.gates.num_num_ansatz import NumNumAnsatzOpSpinBalancedJW
 from ffsim.qiskit.gates.orbital_rotation import (
     OrbitalRotationJW,
     OrbitalRotationSpinlessJW,
@@ -194,4 +196,53 @@ def _ucj_op_spinless_jw(
         yield CircuitInstruction(
             OrbitalRotationSpinlessJW(ucj_op.norb, ucj_op.final_orbital_rotation),
             qubits,
+        )
+
+
+class UCJAnglesOpSpinBalancedJW(Gate):
+    """Spin-balanced UCJ operator parameterized by gate rotation angles.
+
+    See :class:`ffsim.UCJAnglesOpSpinBalanced` for a description of this gate's unitary.
+
+    This gate assumes that qubits are ordered such that the first `norb` qubits
+    correspond to the alpha orbitals and the last `norb` qubits correspond to the
+    beta orbitals.
+    """
+
+    def __init__(
+        self, ucj_op: variational.UCJAnglesOpSpinBalanced, *, label: str | None = None
+    ):
+        """Create a new spin-balanced unitary cluster Jastrow (UCJ) gate.
+
+        Args:
+            ucj_op: The UCJ operator.
+            label: The label of the gate.
+        """
+        self.ucj_op = ucj_op
+        super().__init__("ucj_angles_balanced_jw", 2 * ucj_op.norb, [], label=label)
+
+    def _define(self):
+        """Gate decomposition."""
+        qubits = QuantumRegister(self.num_qubits)
+        self.definition = QuantumCircuit.from_instructions(
+            _ucj_angles_op_spin_balanced_jw(qubits, self.ucj_op),
+            qubits=qubits,
+            name=self.name,
+        )
+
+
+def _ucj_angles_op_spin_balanced_jw(
+    qubits: Sequence[Qubit], ucj_op: variational.UCJAnglesOpSpinBalanced
+) -> Iterator[CircuitInstruction]:
+    for num_num_ansatz_op, givens_ansatz_op in zip(
+        ucj_op.num_num_ansatz_ops, ucj_op.givens_ansatz_ops
+    ):
+        yield CircuitInstruction(GivensAnsatzOpJW(givens_ansatz_op).inverse(), qubits)
+        yield CircuitInstruction(
+            NumNumAnsatzOpSpinBalancedJW(num_num_ansatz_op), qubits
+        )
+        yield CircuitInstruction(GivensAnsatzOpJW(givens_ansatz_op), qubits)
+    if ucj_op.final_givens_ansatz_op is not None:
+        yield CircuitInstruction(
+            GivensAnsatzOpJW(ucj_op.final_givens_ansatz_op), qubits
         )
