@@ -23,11 +23,7 @@ import scipy.linalg
 import scipy.optimize
 from opt_einsum import contract
 
-from ffsim.linalg.util import (
-    df_tensors_from_params,
-    df_tensors_from_params_jax,
-    df_tensors_to_params,
-)
+from ffsim.linalg.util import df_tensors_from_params, df_tensors_to_params
 
 
 def _truncated_eigh(
@@ -357,10 +353,15 @@ def _double_factorized_compressed(
 
     two_body_tensor_jax = jnp.array(two_body_tensor)
 
-    def fun(x):
-        diag_coulomb_mats, orbital_rotations = df_tensors_from_params_jax(
-            x, n_tensors, norb, diag_coulomb_indices, real=True
+    def fun_jax(diag_coulomb_mats: jax.Array, orbital_rotation_generators: jax.Array):
+        diag_coulomb_mats = 0.5 * (
+            diag_coulomb_mats + diag_coulomb_mats.transpose(0, 2, 1)
         )
+        orbital_rotation_generators = 0.5 * (
+            orbital_rotation_generators
+            - orbital_rotation_generators.transpose(0, 2, 1).conj()
+        )
+        orbital_rotations = jax.scipy.linalg.expm(orbital_rotation_generators)
         diff = two_body_tensor_jax - contract(
             "kpi,kqi,kij,krj,ksj->pqrs",
             orbital_rotations,
@@ -370,20 +371,38 @@ def _double_factorized_compressed(
             orbital_rotations,
             optimize="greedy",
         )
-        return 0.5 * jnp.sum(diff**2)
+        return 0.5 * jnp.sum(jnp.abs(diff) ** 2)
 
-    value_and_grad = jax.value_and_grad(fun)
+    value_and_grad = jax.value_and_grad(fun_jax, argnums=(0, 1))
+
+    def fun(x):
+        diag_coulomb_mats, orbital_rotation_generators = df_tensors_from_params(
+            x, n_tensors, norb, diag_coulomb_indices, real=True
+        )
+        val, (grad_diag_coulomb, grad_orbital_rotation_generators) = value_and_grad(
+            jnp.array(diag_coulomb_mats), jnp.array(orbital_rotation_generators)
+        )
+        return val, df_tensors_to_params(
+            grad_diag_coulomb,
+            grad_orbital_rotation_generators,
+            diag_coulomb_indices,
+            real=True,
+        )
 
     x0 = df_tensors_to_params(
-        diag_coulomb_mats, orbital_rotations, diag_coulomb_indices, real=True
+        diag_coulomb_mats,
+        scipy.linalg.logm(orbital_rotations),
+        diag_coulomb_indices,
+        real=True,
     )
     result = scipy.optimize.minimize(
-        value_and_grad, x0, method=method, jac=True, callback=callback, options=options
+        fun, x0, method=method, jac=True, callback=callback, options=options
     )
-    diag_coulomb_mats, orbital_rotations = df_tensors_from_params(
+    diag_coulomb_mats, orbital_rotation_generators = df_tensors_from_params(
         result.x, n_tensors, norb, diag_coulomb_indices, real=True
     )
 
+    orbital_rotations = scipy.linalg.expm(orbital_rotation_generators)
     if return_optimize_result:
         return diag_coulomb_mats, orbital_rotations, result
     return diag_coulomb_mats, orbital_rotations

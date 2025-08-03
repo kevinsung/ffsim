@@ -439,7 +439,7 @@ def df_tensors_to_params(
     Returns:
         The list of real numbers parameterizing the double-factorization tensors.
     """
-    orbital_rotation_params = unitaries_to_parameters(orbital_rotations, real=real)
+    orbital_rotation_params = antihermitians_to_parameters(orbital_rotations, real=real)
     diag_coulomb_params = real_symmetrics_to_parameters(
         diag_coulomb_mats, diag_coulomb_indices
     )
@@ -476,7 +476,7 @@ def df_tensors_from_params(
     n_params_orb_rot = n_tensors * n_params_per_orb_rot
     orbital_rotation_params = params[:n_params_orb_rot]
     diag_coulomb_params = params[n_params_orb_rot:]
-    orbital_rotations = unitaries_from_parameters(
+    orbital_rotations = antihermitians_from_parameters(
         orbital_rotation_params, dim=norb, n_mats=n_tensors, real=real
     )
     diag_coulomb_mats = real_symmetrics_from_parameters(
@@ -500,7 +500,7 @@ def df_tensors_from_params_jax(
     n_params_orb_rot = n_tensors * n_params_per_orb_rot
     orbital_rotation_params = params[:n_params_orb_rot]
     diag_coulomb_params = params[n_params_orb_rot:]
-    orbital_rotations = unitaries_from_parameters_jax(
+    orbital_rotations = antihermitians_from_parameters_jax(
         orbital_rotation_params, dim=norb, n_mats=n_tensors, real=real
     )
     diag_coulomb_mats = real_symmetrics_from_parameters_jax(
@@ -508,5 +508,5 @@ def df_tensors_from_params_jax(
         dim=norb,
         n_mats=n_tensors,
         triu_indices=diag_coulomb_indices,
-    )
+    ).astype(float if real else complex)
     return diag_coulomb_mats, orbital_rotations
