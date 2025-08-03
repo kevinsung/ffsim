@@ -16,14 +16,16 @@ import itertools
 import math
 from typing import cast
 
+import jax
+import jax.numpy as jnp
 import numpy as np
 import scipy.linalg
 import scipy.optimize
 from opt_einsum import contract
 
 from ffsim.linalg.util import (
-    antihermitian_from_parameters,
     df_tensors_from_params,
+    df_tensors_from_params_jax,
     df_tensors_to_params,
 )
 
@@ -353,18 +355,13 @@ def _double_factorized_compressed(
     )
     n_tensors, norb, _ = orbital_rotations.shape
 
-    if diag_coulomb_indices is None:
-        rows, cols = np.triu_indices(norb)
-    else:
-        rows, cols = zip(*diag_coulomb_indices)  # type: ignore
-
-    n_triu = norb * (norb - 1) // 2
+    two_body_tensor_jax = jnp.array(two_body_tensor)
 
     def fun(x):
-        diag_coulomb_mats, orbital_rotations = df_tensors_from_params(
+        diag_coulomb_mats, orbital_rotations = df_tensors_from_params_jax(
             x, n_tensors, norb, diag_coulomb_indices, real=True
         )
-        diff = two_body_tensor - contract(
+        diff = two_body_tensor_jax - contract(
             "kpi,kqi,kij,krj,ksj->pqrs",
             orbital_rotations,
             orbital_rotations,
@@ -373,60 +370,15 @@ def _double_factorized_compressed(
             orbital_rotations,
             optimize="greedy",
         )
-        return 0.5 * np.sum(diff**2)
+        return 0.5 * jnp.sum(diff**2)
 
-    def jac(x):
-        diag_coulomb_mats, orbital_rotations = df_tensors_from_params(
-            x, n_tensors, norb, diag_coulomb_indices, real=True
-        )
-        diff = two_body_tensor - contract(
-            "kpi,kqi,kij,krj,ksj->pqrs",
-            orbital_rotations,
-            orbital_rotations,
-            diag_coulomb_mats,
-            orbital_rotations,
-            orbital_rotations,
-            optimize="greedy",
-        )
-        grad_orbital_rotations = -4 * contract(
-            "pqrs,tqk,tkl,trl,tsl->tpk",
-            diff,
-            orbital_rotations,
-            diag_coulomb_mats,
-            orbital_rotations,
-            orbital_rotations,
-            optimize="greedy",
-        )
-        generators = [
-            antihermitian_from_parameters(
-                x[i * n_triu : (i + 1) * n_triu], norb, real=True
-            )
-            for i in range(n_tensors)
-        ]
-        grad_generator = np.ravel(
-            [
-                _grad_generator(log, grad)
-                for log, grad in zip(generators, grad_orbital_rotations)
-            ]
-        )
-        grad_diag_coulomb = -2 * contract(
-            "pqrs,tpk,tqk,trl,tsl->tkl",
-            diff,
-            orbital_rotations,
-            orbital_rotations,
-            orbital_rotations,
-            orbital_rotations,
-            optimize="greedy",
-        )
-        grad_diag_coulomb[:, range(norb), range(norb)] /= 2
-        grad_diag_coulomb = np.ravel([mat[rows, cols] for mat in grad_diag_coulomb])
-        return np.concatenate([grad_generator, grad_diag_coulomb])
+    value_and_grad = jax.value_and_grad(fun)
 
     x0 = df_tensors_to_params(
         diag_coulomb_mats, orbital_rotations, diag_coulomb_indices, real=True
     )
     result = scipy.optimize.minimize(
-        fun, x0, method=method, jac=jac, callback=callback, options=options
+        value_and_grad, x0, method=method, jac=True, callback=callback, options=options
     )
     diag_coulomb_mats, orbital_rotations = df_tensors_from_params(
         result.x, n_tensors, norb, diag_coulomb_indices, real=True
@@ -435,21 +387,6 @@ def _double_factorized_compressed(
     if return_optimize_result:
         return diag_coulomb_mats, orbital_rotations, result
     return diag_coulomb_mats, orbital_rotations
-
-
-def _grad_generator(mat: np.ndarray, grad_orbital_rotation: np.ndarray) -> np.ndarray:
-    eigs, vecs = scipy.linalg.eigh(-1j * mat)
-    eig_i, eig_j = np.meshgrid(eigs, eigs, indexing="ij")
-    with np.errstate(divide="ignore", invalid="ignore"):
-        coeffs = -1j * (np.exp(1j * eig_i) - np.exp(1j * eig_j)) / (eig_i - eig_j)
-    coeffs[eig_i == eig_j] = np.exp(1j * eig_i[eig_i == eig_j])
-    grad = (
-        vecs.conj() @ (vecs.T @ grad_orbital_rotation @ vecs.conj() * coeffs) @ vecs.T
-    )
-    grad -= grad.T
-    norb, _ = mat.shape
-    triu_indices = np.triu_indices(norb, k=1)
-    return np.real(grad[triu_indices])
 
 
 def double_factorized_t2(
