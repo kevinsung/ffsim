@@ -205,9 +205,10 @@ def double_factorized_t2_compressed(
             val, (grad_diag_coulomb, grad_orbital_rotation_generators) = value_and_grad(
                 diag_coulomb_mats, orbital_rotation_generators
             )
+            # See https://github.com/jax-ml/jax/issues/4891 for reason for conj() below
             return val, df_tensors_to_params(
-                grad_diag_coulomb,
-                grad_orbital_rotation_generators,
+                grad_diag_coulomb.conj(),
+                grad_orbital_rotation_generators.conj(),
                 diag_coulomb_indices,
             )
 
