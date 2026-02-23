@@ -290,19 +290,14 @@ def _sample_from_projection_normals(
     while active:
         # Pivot column used for sampling and elimination.
         pivot_normal = active_normals[:, 0]
-        row_norms = np.abs(pivot_normal) ** 2
-        total = float(np.sum(row_norms))
-        if total <= 0:
-            raise ValueError("Failed to compute sampling probabilities.")
-        probs = row_norms / total
-        orb = int(rng.choice(norb, p=probs))
+        probs = np.abs(pivot_normal) ** 2
+        probs /= np.sum(probs)
+        orb = rng.choice(norb, p=probs)
         selected.append(orb)
         if active == 1:
             # No further elimination needed
             break
         pivot_val = pivot_normal[orb]
-        if np.abs(pivot_val) <= tol:
-            raise ValueError("Numerical pivot breakdown in fast sampler.")
         # Update remaining normals via Gaussian elimination (rank-1 update)
         active_normals[:, 1:active] = blas_ger(
             -1 / pivot_val,
