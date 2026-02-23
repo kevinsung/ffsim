@@ -291,7 +291,7 @@ def _sample_from_projection_normals(
         # Pivot column used for sampling and elimination.
         pivot_normal = active_normals[:, 0]
         probs = np.abs(pivot_normal) ** 2
-        probs /= np.sum(probs)
+        probs /= probs.sum()
         orb = rng.choice(norb, p=probs)
         selected.append(orb)
         if active == 1:
