@@ -16,6 +16,7 @@ from qiskit.quantum_info import SparsePauliOp
 
 from ffsim import _lib
 from ffsim.operators import FermionOperator
+from ffsim.qiskit.util import qubit_operator_to_sparse_pauli_op
 
 
 def jordan_wigner(
@@ -72,8 +73,5 @@ def jordan_wigner(
             f"only {norb} were specified."
         )
 
-    sparse_list, num_qubits = _lib.jordan_wigner_qiskit(
-        op, norb, tol
-    )  # computed in Rust (src/jordan_wigner.rs)
-
-    return SparsePauliOp.from_sparse_list(sparse_list, num_qubits=num_qubits)
+    qubit_op = _lib.jordan_wigner(op, norb, tol)
+    return qubit_operator_to_sparse_pauli_op(qubit_op, 2 * norb)

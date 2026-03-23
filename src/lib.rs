@@ -15,6 +15,7 @@ mod fermion_operator;
 mod gates;
 mod jordan_wigner;
 mod linalg;
+mod qubit_operator;
 
 /// Python module exposing Rust extensions.
 #[pymodule]
@@ -60,10 +61,8 @@ fn _lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
         contract::fermion_operator::contract_fermion_operator_into_buffer,
         m
     )?)?;
-    m.add_function(pyo3::wrap_pyfunction!(
-        jordan_wigner::jordan_wigner_qiskit,
-        m
-    )?)?;
+    m.add_function(pyo3::wrap_pyfunction!(jordan_wigner::jordan_wigner, m)?)?;
     m.add_class::<fermion_operator::FermionOperator>()?;
+    m.add_class::<qubit_operator::QubitOperator>()?;
     Ok(())
 }
