@@ -13,9 +13,27 @@ from __future__ import annotations
 from functools import cache
 
 import numpy as np
+from qiskit.quantum_info import SparsePauliOp
 
 from ffsim._cistring import make_strings
+from ffsim.operators import QubitOperator
 from ffsim.states.dimensions import dim
+
+
+def qubit_operator_to_sparse_pauli_op(
+    op: QubitOperator, num_qubits: int
+) -> SparsePauliOp:
+    """Convert a QubitOperator to a Qiskit SparsePauliOp."""
+    sparse_list = []
+    for term, coeff in op.items():
+        if term:
+            paulis, qubits = zip(*term)
+        else:
+            paulis = qubits = []
+        sparse_list.append(("".join(paulis), qubits, coeff))
+    if not sparse_list:
+        sparse_list = [("", [], 0.0)]
+    return SparsePauliOp.from_sparse_list(sparse_list, num_qubits=num_qubits)
 
 
 def qiskit_vec_to_ffsim_vec(

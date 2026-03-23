@@ -38,6 +38,8 @@ from ffsim.molecular_data import MolecularData
 from ffsim.operators import (
     FermionAction,
     FermionOperator,
+    QubitAction,
+    QubitOperator,
     ccsd_generator_restricted,
     ccsd_generator_unrestricted,
     cre,
@@ -50,6 +52,7 @@ from ffsim.operators import (
     doubles_excitations_unrestricted,
     fermi_hubbard_1d,
     fermi_hubbard_2d,
+    jordan_wigner,
     number_operator,
     s_minus_operator,
     s_plus_operator,
@@ -61,6 +64,9 @@ from ffsim.operators import (
     singles_excitations_unrestricted,
     uccsd_generator_restricted,
     uccsd_generator_unrestricted,
+    x,
+    y,
+    z,
 )
 from ffsim.protocols import (
     SupportsApplyUnitary,
@@ -135,6 +141,8 @@ __all__ = [
     "MolecularHamiltonianSpinless",
     "NumNumAnsatzOpSpinBalanced",
     "ProductStateSum",
+    "QubitAction",
+    "QubitOperator",
     "ReducedDensityMatrix",
     "SingleFactorizedHamiltonian",
     "Spin",
@@ -190,6 +198,7 @@ __all__ = [
     "fermion_operator",
     "hartree_fock_state",
     "init_cache",
+    "jordan_wigner",
     "linalg",
     "linear_operator",
     "multireference_state",
@@ -225,4 +234,7 @@ __all__ = [
     "trace",
     "uccsd_generator_restricted",
     "uccsd_generator_unrestricted",
+    "x",
+    "y",
+    "z",
 ]

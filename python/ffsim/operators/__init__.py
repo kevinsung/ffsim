@@ -44,10 +44,15 @@ from ffsim.operators.fermion_action import (
     des_b,
 )
 from ffsim.operators.fermion_operator import FermionOperator
+from ffsim.operators.qubit_action import QubitAction, x, y, z
+from ffsim.operators.qubit_operator import QubitOperator
+from ffsim.operators.transformations import jordan_wigner
 
 __all__ = [
     "FermionAction",
     "FermionOperator",
+    "QubitAction",
+    "QubitOperator",
     "ccsd_generator_restricted",
     "ccsd_generator_unrestricted",
     "cre",
@@ -60,6 +65,7 @@ __all__ = [
     "doubles_excitations_unrestricted",
     "fermi_hubbard_1d",
     "fermi_hubbard_2d",
+    "jordan_wigner",
     "number_operator",
     "s_minus_operator",
     "s_plus_operator",
@@ -71,4 +77,7 @@ __all__ = [
     "singles_excitations_unrestricted",
     "uccsd_generator_restricted",
     "uccsd_generator_unrestricted",
+    "x",
+    "y",
+    "z",
 ]
