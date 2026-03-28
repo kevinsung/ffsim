@@ -373,6 +373,46 @@ def random_uccsd_op_restricted_real(
     )
 
 
+def random_uccsd_jastrow_op_restricted_real(
+    norb: int,
+    nocc: int,
+    *,
+    n_steps: int = 1,
+    order: int = 0,
+    with_final_orbital_rotation: bool = False,
+    seed=None,
+) -> variational.UCCSDJastrowOpRestrictedReal:
+    """Sample a random real-valued Jastrow-Trotterized UCCSD operator.
+
+    Args:
+        norb: The number of spatial orbitals.
+        nocc: The number of spatial orbitals that are occupied by electrons.
+        n_steps: The number of Trotter steps.
+        order: The order of the Trotter-Suzuki decomposition formula.
+        with_final_orbital_rotation: Whether to include a final orbital rotation
+            in the operator.
+        seed: A seed to initialize the pseudorandom number generator.
+            Should be a valid input to ``np.random.default_rng``.
+
+    Returns:
+        The sampled operator.
+    """
+    rng = np.random.default_rng(seed)
+    nvrt = norb - nocc
+    t1 = rng.standard_normal((nocc, nvrt))
+    t2 = random_t2_amplitudes(norb, nocc, seed=rng, dtype=float)
+    final_orbital_rotation = None
+    if with_final_orbital_rotation:
+        final_orbital_rotation = random_unitary(norb, seed=rng)
+    return variational.UCCSDJastrowOpRestrictedReal(
+        t1=t1,
+        t2=t2,
+        n_steps=n_steps,
+        order=order,
+        final_orbital_rotation=final_orbital_rotation,
+    )
+
+
 def random_uccsd_op_restricted(
     norb: int,
     nocc: int,
