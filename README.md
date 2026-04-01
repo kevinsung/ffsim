@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="docs/_static/logo.svg" alt="ffsim logo" width="200" />
+</div>
+
 # ffsim
 
 <!-- start introduction -->
