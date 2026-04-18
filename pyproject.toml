@@ -30,7 +30,7 @@ dependencies = [
     "numpy <= 2.3",
     "opt_einsum",
     "orjson",
-    "pyscf >= 2.9",
+    "pyscf @ git+https://github.com/kevinsung/pyscf.git@cmake-native",
     "qiskit >= 2.0",
     "scipy",
     "typing-extensions",
