@@ -60,6 +60,7 @@ dependencies = [
  "ndarray",
  "num-integer",
  "numpy",
+ "once_cell",
  "pyo3",
  "rayon",
 ]

@@ -14,7 +14,7 @@ The ``init_cache`` function prepares ffsim to perform operations with given valu
 of ``norb`` and ``nelec``. Typically there is no need to call this function.
 """
 
-from ffsim._cistring import (
+from ffsim._lib import (
     gen_linkstr_index,
     gen_linkstr_index_trilidx,
     gen_occslst,
@@ -35,7 +35,7 @@ def init_cache(norb: int, nelec: tuple[int, int]) -> None:
         nelec: The number of alpha and beta electrons.
     """
     for nocc in nelec:
-        make_strings(range(norb), nocc)
-        gen_occslst(range(norb), nocc)
-        gen_linkstr_index(range(norb), nocc)
-        gen_linkstr_index_trilidx(range(norb), nocc)
+        make_strings(norb, nocc)
+        gen_occslst(norb, nocc)
+        gen_linkstr_index(norb, nocc)
+        gen_linkstr_index_trilidx(norb, nocc)

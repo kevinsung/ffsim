@@ -14,7 +14,7 @@ from functools import cache
 
 import numpy as np
 
-from ffsim._cistring import make_strings
+from ffsim._lib import make_strings
 from ffsim.states.dimensions import dim
 
 
@@ -61,9 +61,9 @@ def ffsim_vec_to_qiskit_vec(
 @cache
 def _ffsim_indices(norb: int, nelec: int | tuple[int, int]) -> np.ndarray:
     if isinstance(nelec, int):
-        return make_strings(range(norb), nelec)
+        return make_strings(norb, nelec)
     n_alpha, n_beta = nelec
-    strings_a = make_strings(range(norb), n_alpha)
-    strings_b = make_strings(range(norb), n_beta) << norb
+    strings_a = make_strings(norb, n_alpha)
+    strings_b = make_strings(norb, n_beta) << norb
     # Compute [a + b for a, b in product(strings_a, strings_b)]
     return (strings_a.reshape(-1, 1) + strings_b).reshape(-1)

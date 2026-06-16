@@ -10,6 +10,7 @@
 
 use pyo3::prelude::*;
 
+mod cistring;
 mod contract;
 mod fermion_operator;
 mod gates;
@@ -19,6 +20,10 @@ mod linalg;
 /// Python module exposing Rust extensions.
 #[pymodule]
 fn _lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(cistring::make_strings, m)?)?;
+    m.add_function(wrap_pyfunction!(cistring::gen_occslst, m)?)?;
+    m.add_function(wrap_pyfunction!(cistring::gen_linkstr_index, m)?)?;
+    m.add_function(wrap_pyfunction!(cistring::gen_linkstr_index_trilidx, m)?)?;
     m.add_function(wrap_pyfunction!(
         gates::phase_shift::apply_phase_shift_in_place,
         m

@@ -16,10 +16,11 @@ import numpy as np
 import pytest
 
 import ffsim
-from ffsim import _cistring
 from ffsim._lib import (
     apply_diag_coulomb_evolution_in_place_num_rep,
     apply_diag_coulomb_evolution_in_place_z_rep,
+    gen_occslst,
+    make_strings,
 )
 from ffsim._slow.gates.diag_coulomb import (
     apply_diag_coulomb_evolution_in_place_num_rep_numpy,
@@ -38,8 +39,8 @@ def test_apply_diag_coulomb_evolution_num_rep_slow(norb: int, nelec: tuple[int, 
     n_alpha, n_beta = nelec
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
-    occupations_a = _cistring.gen_occslst(range(norb), n_alpha)
-    occupations_b = _cistring.gen_occslst(range(norb), n_beta)
+    occupations_a = gen_occslst(norb, n_alpha)
+    occupations_b = gen_occslst(norb, n_beta)
     for _ in range(5):
         time = RNG.uniform(-10, 10)
         mat_aa = ffsim.random.random_real_symmetric_matrix(norb, seed=RNG)
@@ -81,8 +82,8 @@ def test_apply_diag_coulomb_evolution_z_rep_slow(norb: int, nelec: tuple[int, in
     n_alpha, n_beta = nelec
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
-    strings_a = _cistring.make_strings(range(norb), n_alpha)
-    strings_b = _cistring.make_strings(range(norb), n_beta)
+    strings_a = make_strings(norb, n_alpha)
+    strings_b = make_strings(norb, n_beta)
     for _ in range(5):
         time = RNG.uniform(-10, 10)
         mat_aa = ffsim.random.random_real_symmetric_matrix(norb, seed=RNG)
@@ -130,8 +131,8 @@ def test_apply_diag_coulomb_evolution_num_rep_numpy(norb: int, nelec: tuple[int,
     n_alpha, n_beta = nelec
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
-    occupations_a = _cistring.gen_occslst(range(norb), n_alpha)
-    occupations_b = _cistring.gen_occslst(range(norb), n_beta)
+    occupations_a = gen_occslst(norb, n_alpha)
+    occupations_b = gen_occslst(norb, n_beta)
     for _ in range(5):
         time = RNG.uniform(-10, 10)
         mat_aa = ffsim.random.random_real_symmetric_matrix(norb, seed=RNG)

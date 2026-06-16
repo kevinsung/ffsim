@@ -28,7 +28,7 @@ from pyscf.fci.direct_spin1 import (
 from scipy.sparse.linalg import LinearOperator
 
 from ffsim import states
-from ffsim._cistring import gen_linkstr_index, gen_linkstr_index_trilidx
+from ffsim._lib import gen_linkstr_index, gen_linkstr_index_trilidx
 
 
 def two_body_linop(
@@ -90,8 +90,8 @@ def _two_body_linop_real(
         one_body_tensor = np.zeros((norb, norb))
 
     n_alpha, n_beta = nelec
-    linkstr_index_a = gen_linkstr_index_trilidx(range(norb), n_alpha)
-    linkstr_index_b = gen_linkstr_index_trilidx(range(norb), n_beta)
+    linkstr_index_a = gen_linkstr_index_trilidx(norb, n_alpha)
+    linkstr_index_b = gen_linkstr_index_trilidx(norb, n_beta)
     link_index = (linkstr_index_a, linkstr_index_b)
     two_body_tensor = absorb_h1e_spin1(
         one_body_tensor, two_body_tensor, norb, nelec, 0.5
@@ -135,8 +135,8 @@ def _two_body_linop_complex(
         one_body_tensor = np.zeros((norb, norb))
 
     n_alpha, n_beta = nelec
-    linkstr_index_a = gen_linkstr_index(range(norb), n_alpha)
-    linkstr_index_b = gen_linkstr_index(range(norb), n_beta)
+    linkstr_index_a = gen_linkstr_index(norb, n_alpha)
+    linkstr_index_b = gen_linkstr_index(norb, n_beta)
     link_index = (linkstr_index_a, linkstr_index_b)
     two_body_tensor = absorb_h1e_nosym(
         one_body_tensor, two_body_tensor, norb, nelec, 0.5

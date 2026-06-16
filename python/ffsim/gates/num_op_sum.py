@@ -17,8 +17,7 @@ from typing import cast, overload
 
 import numpy as np
 
-from ffsim._cistring import gen_occslst
-from ffsim._lib import apply_num_op_sum_evolution_in_place
+from ffsim._lib import apply_num_op_sum_evolution_in_place, gen_occslst
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
 
 
@@ -149,7 +148,7 @@ def _apply_num_op_sum_evolution_spinless(
     orbital_rotation: np.ndarray | None,
 ) -> np.ndarray:
     phases = np.exp(-1j * time * coeffs)
-    occupations = gen_occslst(range(norb), nelec)
+    occupations = gen_occslst(norb, nelec)
     if orbital_rotation is not None:
         vec = apply_orbital_rotation(
             vec,
@@ -184,8 +183,8 @@ def _apply_num_op_sum_evolution_spinful(
     n_alpha, n_beta = nelec
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
-    occupations_a = gen_occslst(range(norb), n_alpha)
-    occupations_b = gen_occslst(range(norb), n_beta)
+    occupations_a = gen_occslst(norb, n_alpha)
+    occupations_b = gen_occslst(norb, n_beta)
 
     if orbital_rotation is not None:
         vec = apply_orbital_rotation(

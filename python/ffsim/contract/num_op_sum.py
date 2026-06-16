@@ -17,9 +17,9 @@ import math
 import numpy as np
 import scipy.sparse.linalg
 
-from ffsim._cistring import gen_occslst
 from ffsim._lib import (
     contract_num_op_sum_spin_into_buffer,
+    gen_occslst,
 )
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
 
@@ -51,8 +51,8 @@ def contract_num_op_sum(
     vec = vec.astype(complex, copy=False)
     n_alpha, n_beta = nelec
 
-    occupations_a = gen_occslst(range(norb), n_alpha)
-    occupations_b = gen_occslst(range(norb), n_beta)
+    occupations_a = gen_occslst(norb, n_alpha)
+    occupations_b = gen_occslst(norb, n_beta)
 
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)

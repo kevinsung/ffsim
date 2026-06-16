@@ -15,8 +15,7 @@ import math
 import numpy as np
 
 import ffsim
-from ffsim import _cistring
-from ffsim._lib import apply_num_op_sum_evolution_in_place
+from ffsim._lib import apply_num_op_sum_evolution_in_place, gen_occslst
 from ffsim._slow.gates.num_op_sum import apply_num_op_sum_evolution_in_place_slow
 
 RNG = np.random.default_rng(187623363224105294377845072749466012434)
@@ -30,7 +29,7 @@ def test_apply_num_op_sum_evolution_in_place_slow():
         n_beta = RNG.integers(1, norb + 1)
         dim_a = math.comb(norb, n_alpha)
         dim_b = math.comb(norb, n_beta)
-        occupations = _cistring.gen_occslst(range(norb), n_alpha)
+        occupations = gen_occslst(norb, n_alpha)
         exponents = RNG.uniform(0, 2 * np.pi, size=norb)
         phases = np.exp(1j * exponents)
         vec_slow = ffsim.random.random_state_vector(dim_a * dim_b, seed=RNG).reshape(

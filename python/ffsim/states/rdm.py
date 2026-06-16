@@ -28,7 +28,7 @@ from pyscf.fci.direct_spin1 import (
     trans_rdm12s,
 )
 
-from ffsim._cistring import gen_linkstr_index
+from ffsim._lib import gen_linkstr_index
 
 if TYPE_CHECKING:
     from ffsim.hamiltonians.molecular_hamiltonian import MolecularHamiltonian
@@ -141,8 +141,8 @@ def rdms(
         The spin-summed 2-RDM is alpha-alpha + alpha-beta + beta-alpha + beta-beta.
     """
     n_alpha, n_beta = nelec
-    link_index_a = gen_linkstr_index(range(norb), n_alpha)
-    link_index_b = gen_linkstr_index(range(norb), n_beta)
+    link_index_a = gen_linkstr_index(norb, n_alpha)
+    link_index_b = gen_linkstr_index(norb, n_beta)
     link_index = (link_index_a, link_index_b)
     if rank == 1:
         if spin_summed:

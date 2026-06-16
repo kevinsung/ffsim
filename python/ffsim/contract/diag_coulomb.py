@@ -17,10 +17,11 @@ import math
 import numpy as np
 import scipy.sparse.linalg
 
-from ffsim._cistring import gen_occslst, make_strings
 from ffsim._lib import (
     contract_diag_coulomb_into_buffer_num_rep,
     contract_diag_coulomb_into_buffer_z_rep,
+    gen_occslst,
+    make_strings,
 )
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
 
@@ -142,8 +143,8 @@ def _contract_diag_coulomb_num_rep(
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
 
-    occupations_a = gen_occslst(range(norb), n_alpha)
-    occupations_b = gen_occslst(range(norb), n_beta)
+    occupations_a = gen_occslst(norb, n_alpha)
+    occupations_b = gen_occslst(norb, n_beta)
 
     vec = vec.reshape((dim_a, dim_b))
     out = np.zeros_like(vec)
@@ -173,8 +174,8 @@ def _contract_diag_coulomb_z_rep(
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
 
-    strings_a = make_strings(range(norb), n_alpha)
-    strings_b = make_strings(range(norb), n_beta)
+    strings_a = make_strings(norb, n_alpha)
+    strings_b = make_strings(norb, n_beta)
 
     vec = vec.reshape((dim_a, dim_b))
     out = np.zeros_like(vec)
