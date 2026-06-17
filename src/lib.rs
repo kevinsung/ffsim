@@ -24,6 +24,7 @@ fn _lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cistring::gen_occslst, m)?)?;
     m.add_function(wrap_pyfunction!(cistring::gen_linkstr_index, m)?)?;
     m.add_function(wrap_pyfunction!(cistring::gen_linkstr_index_trilidx, m)?)?;
+    m.add_function(wrap_pyfunction!(cistring::addr_from_occupied, m)?)?;
     m.add_function(wrap_pyfunction!(
         gates::phase_shift::apply_phase_shift_in_place,
         m

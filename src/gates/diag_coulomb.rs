@@ -11,7 +11,6 @@
 use ndarray::Array;
 use ndarray::Zip;
 use numpy::Complex64;
-use numpy::PyReadonlyArray1;
 use numpy::PyReadonlyArray2;
 use numpy::PyReadwriteArray2;
 use pyo3::prelude::*;
@@ -101,8 +100,8 @@ pub fn apply_diag_coulomb_evolution_in_place_z_rep(
     mat_exp_ab_conj: PyReadonlyArray2<Complex64>,
     mat_exp_bb_conj: PyReadonlyArray2<Complex64>,
     norb: usize,
-    strings_a: PyReadonlyArray1<i64>,
-    strings_b: PyReadonlyArray1<i64>,
+    strings_a: PyReadonlyArray2<u64>,
+    strings_b: PyReadonlyArray2<u64>,
 ) {
     let mat_exp_aa = mat_exp_aa.as_array();
     let mat_exp_ab = mat_exp_ab.as_array();
@@ -122,69 +121,144 @@ pub fn apply_diag_coulomb_evolution_in_place_z_rep(
     let mut beta_phases = Array::zeros(dim_b);
     let mut phase_map = Array::ones((dim_a, norb));
 
-    Zip::from(&mut beta_phases)
-        .and(strings_b)
-        .par_for_each(|val, str0| {
-            let mut phase = Complex64::new(1.0, 0.0);
-            for j in 0..norb {
-                let sign_j = (str0 >> j) & 1 == 1;
-                for k in j + 1..norb {
-                    let sign_k = (str0 >> k) & 1 == 1;
-                    let this_phase = if sign_j ^ sign_k {
-                        mat_exp_bb_conj[(j, k)]
-                    } else {
-                        mat_exp_bb[(j, k)]
-                    };
-                    phase *= this_phase;
-                }
-            }
-            *val = phase;
-        });
+    let nw = strings_b.shape()[1];
 
-    Zip::from(&mut alpha_phases)
-        .and(strings_a)
-        .and(phase_map.rows_mut())
-        .par_for_each(|val, str0, mut row| {
-            let mut phase = Complex64::new(1.0, 0.0);
-            for j in 0..norb {
-                let sign_j = (str0 >> j) & 1 == 1;
-                let this_row = if sign_j {
-                    mat_exp_ab_conj.row(j)
-                } else {
-                    mat_exp_ab.row(j)
-                };
-                row *= &this_row;
-                for k in j + 1..norb {
-                    let sign_k = (str0 >> k) & 1 == 1;
-                    let this_phase = if sign_j ^ sign_k {
-                        mat_exp_aa_conj[(j, k)]
-                    } else {
-                        mat_exp_aa[(j, k)]
-                    };
-                    phase *= this_phase;
-                }
-            }
-            *val = phase;
-        });
-
-    Zip::from(vec.rows_mut())
-        .and(&alpha_phases)
-        .and(phase_map.rows())
-        .par_for_each(|row, alpha_phase, phase_map| {
-            Zip::from(row)
-                .and(&beta_phases)
-                .and(strings_b)
-                .for_each(|val, beta_phase, str0| {
-                    let mut phase = *alpha_phase * *beta_phase;
-                    for j in 0..norb {
-                        let this_phase = if (str0 >> j) & 1 == 1 {
-                            phase_map[j].conj()
+    if nw == 1 {
+        // Fast path: each string fits in a single u64 word.
+        Zip::from(&mut beta_phases)
+            .and(strings_b.rows())
+            .par_for_each(|val, row| {
+                let str0 = row[0];
+                let mut phase = Complex64::new(1.0, 0.0);
+                for j in 0..norb {
+                    let sign_j = (str0 >> j) & 1 == 1;
+                    for k in j + 1..norb {
+                        let sign_k = (str0 >> k) & 1 == 1;
+                        let this_phase = if sign_j ^ sign_k {
+                            mat_exp_bb_conj[(j, k)]
                         } else {
-                            phase_map[j]
+                            mat_exp_bb[(j, k)]
                         };
-                        phase *= this_phase
+                        phase *= this_phase;
                     }
-                    *val *= phase;
-                })
-        });
+                }
+                *val = phase;
+            });
+
+        Zip::from(&mut alpha_phases)
+            .and(strings_a.rows())
+            .and(phase_map.rows_mut())
+            .par_for_each(|val, row, mut pm_row| {
+                let str0 = row[0];
+                let mut phase = Complex64::new(1.0, 0.0);
+                for j in 0..norb {
+                    let sign_j = (str0 >> j) & 1 == 1;
+                    let this_row = if sign_j {
+                        mat_exp_ab_conj.row(j)
+                    } else {
+                        mat_exp_ab.row(j)
+                    };
+                    pm_row *= &this_row;
+                    for k in j + 1..norb {
+                        let sign_k = (str0 >> k) & 1 == 1;
+                        let this_phase = if sign_j ^ sign_k {
+                            mat_exp_aa_conj[(j, k)]
+                        } else {
+                            mat_exp_aa[(j, k)]
+                        };
+                        phase *= this_phase;
+                    }
+                }
+                *val = phase;
+            });
+
+        Zip::from(vec.rows_mut())
+            .and(&alpha_phases)
+            .and(phase_map.rows())
+            .par_for_each(|row, alpha_phase, pm_row| {
+                Zip::from(row)
+                    .and(&beta_phases)
+                    .and(strings_b.rows())
+                    .for_each(|val, beta_phase, str_row| {
+                        let str0 = str_row[0];
+                        let mut phase = *alpha_phase * *beta_phase;
+                        for j in 0..norb {
+                            let this_phase = if (str0 >> j) & 1 == 1 {
+                                pm_row[j].conj()
+                            } else {
+                                pm_row[j]
+                            };
+                            phase *= this_phase;
+                        }
+                        *val *= phase;
+                    })
+            });
+    } else {
+        // General multi-word path (norb > 64).
+        Zip::from(&mut beta_phases)
+            .and(strings_b.rows())
+            .par_for_each(|val, row| {
+                let mut phase = Complex64::new(1.0, 0.0);
+                for j in 0..norb {
+                    let sign_j = (row[j >> 6] >> (j & 63)) & 1 == 1;
+                    for k in j + 1..norb {
+                        let sign_k = (row[k >> 6] >> (k & 63)) & 1 == 1;
+                        let this_phase = if sign_j ^ sign_k {
+                            mat_exp_bb_conj[(j, k)]
+                        } else {
+                            mat_exp_bb[(j, k)]
+                        };
+                        phase *= this_phase;
+                    }
+                }
+                *val = phase;
+            });
+
+        Zip::from(&mut alpha_phases)
+            .and(strings_a.rows())
+            .and(phase_map.rows_mut())
+            .par_for_each(|val, row, mut pm_row| {
+                let mut phase = Complex64::new(1.0, 0.0);
+                for j in 0..norb {
+                    let sign_j = (row[j >> 6] >> (j & 63)) & 1 == 1;
+                    let this_row = if sign_j {
+                        mat_exp_ab_conj.row(j)
+                    } else {
+                        mat_exp_ab.row(j)
+                    };
+                    pm_row *= &this_row;
+                    for k in j + 1..norb {
+                        let sign_k = (row[k >> 6] >> (k & 63)) & 1 == 1;
+                        let this_phase = if sign_j ^ sign_k {
+                            mat_exp_aa_conj[(j, k)]
+                        } else {
+                            mat_exp_aa[(j, k)]
+                        };
+                        phase *= this_phase;
+                    }
+                }
+                *val = phase;
+            });
+
+        Zip::from(vec.rows_mut())
+            .and(&alpha_phases)
+            .and(phase_map.rows())
+            .par_for_each(|row, alpha_phase, pm_row| {
+                Zip::from(row)
+                    .and(&beta_phases)
+                    .and(strings_b.rows())
+                    .for_each(|val, beta_phase, str_row| {
+                        let mut phase = *alpha_phase * *beta_phase;
+                        for j in 0..norb {
+                            let this_phase = if (str_row[j >> 6] >> (j & 63)) & 1 == 1 {
+                                pm_row[j].conj()
+                            } else {
+                                pm_row[j]
+                            };
+                            phase *= this_phase;
+                        }
+                        *val *= phase;
+                    })
+            });
+    }
 }

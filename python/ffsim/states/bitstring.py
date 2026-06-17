@@ -346,8 +346,19 @@ def strings_to_addresses(
         strings, input_type=bitstring_type, output_type=BitstringType.INT, length=norb
     )
     if isinstance(nelec, int):
+        if norb > 63:
+            raise NotImplementedError(
+                "strings_to_addresses requires norb ≤ 63 for spinless systems; "
+                f"got {norb}. "
+                "Support for norb > 63 is not yet implemented for this code path."
+            )
         return cistring.strs2addr(norb=norb, nelec=nelec, strings=strings)
     n_alpha, n_beta = nelec
+    if norb > 31:
+        raise NotImplementedError(
+            f"strings_to_addresses requires norb ≤ 31 for spinful systems; got {norb}. "
+            "The combined alpha+beta bitstring requires 2*norb bits, which exceeds 63."
+        )
     strings = np.asarray(strings)
     strings_a = strings & ((1 << norb) - 1)
     strings_b = strings >> norb

@@ -17,9 +17,9 @@ from typing import cast, overload
 
 import numpy as np
 import scipy.linalg
-from pyscf.fci import cistring
 
 from ffsim import linalg
+from ffsim._lib import addr_from_occupied
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
 from ffsim.states.bitstring import bitstring_to_occupied_orbitals
 from ffsim.states.dimensions import dims
@@ -88,8 +88,8 @@ def slater_determinant(
     n_beta = len(beta_orbitals)
     nelec = (n_alpha, n_beta)
     dim1, dim2 = dims(norb, nelec)
-    alpha_index = cistring.str2addr(norb, n_alpha, sum(1 << i for i in alpha_orbitals))
-    beta_index = cistring.str2addr(norb, n_beta, sum(1 << i for i in beta_orbitals))
+    alpha_index = addr_from_occupied(norb, n_alpha, sorted(alpha_orbitals))
+    beta_index = addr_from_occupied(norb, n_beta, sorted(beta_orbitals))
     vec = linalg.one_hot(
         (dim1, dim2), (alpha_index, beta_index), dtype=complex
     ).reshape(-1)

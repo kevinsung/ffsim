@@ -12,11 +12,14 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pytest
 from pyscf.fci import cistring as pyscf_cistring
 
 from ffsim._lib import (
+    addr_from_occupied,
     gen_linkstr_index,
     gen_linkstr_index_trilidx,
     gen_occslst,
@@ -30,10 +33,15 @@ CASES = [(0, 0), (1, 0), (1, 1), (4, 2), (6, 3), (8, 4), (10, 5)]
 def test_make_strings_matches_pyscf(norb: int, nocc: int) -> None:
     result = make_strings(norb, nocc)
     expected = pyscf_cistring.make_strings(range(norb), nocc)
-    assert result.dtype == np.dtype("int64"), f"dtype mismatch: {result.dtype}"
-    assert np.array_equal(result, expected), (
-        f"make_strings({norb}, {nocc}) mismatch\n"
-        f"got:      {result}\nexpected: {expected}"
+    nwords = max(1, math.ceil(norb / 64))
+    assert result.dtype == np.dtype("uint64"), f"dtype mismatch: {result.dtype}"
+    assert result.ndim == 2, f"expected 2-D array, got shape {result.shape}"
+    assert result.shape[1] == nwords, f"expected {nwords} words, got {result.shape[1]}"
+    # For norb <= 64, word 0 of each row must equal pyscf's i64 value reinterpreted as
+    # u64.
+    assert np.array_equal(result[:, 0], expected.astype(np.uint64)), (
+        f"make_strings({norb}, {nocc}) word-0 mismatch\n"
+        f"got:      {result[:, 0]}\nexpected: {expected.astype(np.uint64)}"
     )
 
 
@@ -114,3 +122,87 @@ def test_arrays_are_read_only() -> None:
     assert not arr.flags.writeable, (
         "gen_linkstr_index_trilidx array should be read-only"
     )
+
+
+# ---------------------------------------------------------------------------
+# norb > 64 smoke tests
+# ---------------------------------------------------------------------------
+
+LARGE_NORB_CASES = [(65, 2), (80, 3), (128, 2)]
+
+
+@pytest.mark.parametrize("norb, nocc", LARGE_NORB_CASES)
+def test_make_strings_large_norb_shape(norb: int, nocc: int) -> None:
+    nwords = math.ceil(norb / 64)
+    result = make_strings(norb, nocc)
+    assert result.dtype == np.dtype("uint64")
+    assert result.ndim == 2
+    assert result.shape == (math.comb(norb, nocc), nwords)
+
+
+@pytest.mark.parametrize("norb, nocc", LARGE_NORB_CASES)
+def test_gen_occslst_large_norb(norb: int, nocc: int) -> None:
+    result = gen_occslst(norb, nocc)
+    assert result.shape == (math.comb(norb, nocc), nocc)
+    # All orbital indices must be in [0, norb-1].
+    if result.size > 0:
+        assert int(result.min()) >= 0
+        assert int(result.max()) < norb
+
+
+@pytest.mark.parametrize("norb, nocc", LARGE_NORB_CASES)
+def test_gen_linkstr_index_large_norb(norb: int, nocc: int) -> None:
+    n = math.comb(norb, nocc)
+    nvir = norb - nocc
+    nlink = nocc + nocc * nvir
+    result = gen_linkstr_index(norb, nocc)
+    assert result.shape == (n, nlink, 4)
+    # All addresses must be in [0, n-1].
+    addrs = result[:, :, 2]
+    assert int(addrs.min()) >= 0
+    assert int(addrs.max()) < n
+
+
+@pytest.mark.parametrize("norb, nocc", LARGE_NORB_CASES)
+def test_addr_from_occupied_large_norb(norb: int, nocc: int) -> None:
+    strings = make_strings(norb, nocc)
+    occslst = gen_occslst(norb, nocc)
+    n = math.comb(norb, nocc)
+    for i in range(min(n, 20)):  # spot-check first 20 strings
+        occ = occslst[i].tolist()
+        addr = addr_from_occupied(norb, nocc, occ)
+        assert addr == i, f"addr_from_occupied mismatch at index {i}: got {addr}"
+    _ = strings  # ensure make_strings is exercised
+
+
+@pytest.mark.parametrize("norb, nocc", LARGE_NORB_CASES)
+def test_make_strings_consistency_with_occslst(norb: int, nocc: int) -> None:
+    """Check that word 0 of each string encodes the correct low-64 occupations."""
+    strings = make_strings(norb, nocc)
+    occslst = gen_occslst(norb, nocc)
+    nwords = strings.shape[1]
+    for i in range(min(math.comb(norb, nocc), 20)):
+        # Reconstruct the expected words from the occupation list.
+        expected_words = [0] * nwords
+        for o in occslst[i]:
+            expected_words[o >> 6] |= 1 << (o & 63)
+        for w in range(nwords):
+            assert strings[i, w] == expected_words[w], (
+                f"string {i} word {w}: got {strings[i, w]:#x}, "
+                f"expected {expected_words[w]:#x}"
+            )
+
+
+@pytest.mark.parametrize("norb, nocc", LARGE_NORB_CASES)
+def test_addr_from_occupied_roundtrip(norb: int, nocc: int) -> None:
+    """addr_from_occupied must round-trip through occslst for all checked strings."""
+    occslst = gen_occslst(norb, nocc)
+    n = math.comb(norb, nocc)
+    # Check last 10 strings as well (catches boundary issues).
+    indices = list(range(min(n, 10))) + list(range(max(0, n - 10), n))
+    for i in indices:
+        occ = occslst[i].tolist()
+        addr = addr_from_occupied(norb, nocc, occ)
+        assert addr == i, (
+            f"addr_from_occupied roundtrip failed at index {i}: got {addr}"
+        )

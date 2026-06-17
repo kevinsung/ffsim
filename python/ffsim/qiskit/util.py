@@ -61,9 +61,20 @@ def ffsim_vec_to_qiskit_vec(
 @cache
 def _ffsim_indices(norb: int, nelec: int | tuple[int, int]) -> np.ndarray:
     if isinstance(nelec, int):
-        return make_strings(norb, nelec)
+        if norb > 63:
+            raise NotImplementedError(
+                f"Qiskit interop requires norb ≤ 63 for spinless systems; got {norb}. "
+                "The Qiskit state vector has 2**norb entries, which already exceeds "
+                "available memory at this size."
+            )
+        return make_strings(norb, nelec)[:, 0]
     n_alpha, n_beta = nelec
-    strings_a = make_strings(norb, n_alpha)
-    strings_b = make_strings(norb, n_beta) << norb
+    if norb > 31:
+        raise NotImplementedError(
+            f"Qiskit interop requires norb ≤ 31 for spinful systems; got {norb}. "
+            "The combined alpha+beta index requires 2*norb bits, which exceeds 63."
+        )
+    strings_a = make_strings(norb, n_alpha)[:, 0].astype(np.int64)
+    strings_b = (make_strings(norb, n_beta)[:, 0].astype(np.int64)) << norb
     # Compute [a + b for a, b in product(strings_a, strings_b)]
     return (strings_a.reshape(-1, 1) + strings_b).reshape(-1)

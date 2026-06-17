@@ -11,7 +11,6 @@
 use ndarray::Array;
 use ndarray::Zip;
 use numpy::Complex64;
-use numpy::PyReadonlyArray1;
 use numpy::PyReadonlyArray2;
 use numpy::PyReadwriteArray2;
 use pyo3::prelude::*;
@@ -103,8 +102,8 @@ pub fn contract_diag_coulomb_into_buffer_z_rep(
     mat_ab: PyReadonlyArray2<f64>,
     mat_bb: PyReadonlyArray2<f64>,
     norb: usize,
-    strings_a: PyReadonlyArray1<i64>,
-    strings_b: PyReadonlyArray1<i64>,
+    strings_a: PyReadonlyArray2<u64>,
+    strings_b: PyReadonlyArray2<u64>,
     mut out: PyReadwriteArray2<Complex64>,
 ) {
     let vec = vec.as_array();
@@ -123,52 +122,116 @@ pub fn contract_diag_coulomb_into_buffer_z_rep(
     let mut beta_coeffs = Array::zeros(dim_b);
     let mut coeff_map = Array::zeros((dim_a, norb));
 
-    Zip::from(&mut beta_coeffs)
-        .and(strings_b)
-        .par_for_each(|val, str0| {
-            let mut coeff = Complex64::new(0.0, 0.0);
-            for j in 0..norb {
-                let sign_j = if (str0 >> j) & 1 == 1 { -1 } else { 1 } as f64;
-                for k in j + 1..norb {
-                    let sign_k = if (str0 >> k) & 1 == 1 { -1 } else { 1 } as f64;
-                    coeff += sign_j * sign_k * mat_bb[(j, k)];
-                }
-            }
-            *val = coeff;
-        });
+    let nw = strings_b.shape()[1];
 
-    Zip::from(&mut alpha_coeffs)
-        .and(strings_a)
-        .and(coeff_map.rows_mut())
-        .par_for_each(|val, str0, mut row| {
-            let mut coeff = Complex64::new(0.0, 0.0);
-            for j in 0..norb {
-                let sign_j = if (str0 >> j) & 1 == 1 { -1 } else { 1 } as f64;
-                row += &(sign_j * &mat_ab.row(j));
-                for k in j + 1..norb {
-                    let sign_k = if (str0 >> k) & 1 == 1 { -1 } else { 1 } as f64;
-                    coeff += sign_j * sign_k * mat_aa[(j, k)];
-                }
-            }
-            *val = coeff;
-        });
-
-    Zip::from(vec.rows())
-        .and(out.rows_mut())
-        .and(&alpha_coeffs)
-        .and(coeff_map.rows())
-        .par_for_each(|source, target, alpha_coeff, coeff_map| {
-            Zip::from(source)
-                .and(target)
-                .and(&beta_coeffs)
-                .and(strings_b)
-                .for_each(|source, target, beta_coeff, str0| {
-                    let mut coeff = *alpha_coeff + *beta_coeff;
-                    for j in 0..norb {
-                        let sign_j = if (str0 >> j) & 1 == 1 { -1 } else { 1 } as f64;
-                        coeff += sign_j * coeff_map[j];
+    if nw == 1 {
+        // Fast path: each string fits in a single u64 word.
+        Zip::from(&mut beta_coeffs)
+            .and(strings_b.rows())
+            .par_for_each(|val, row| {
+                let str0 = row[0];
+                let mut coeff = Complex64::new(0.0, 0.0);
+                for j in 0..norb {
+                    let sign_j = if (str0 >> j) & 1 == 1 { -1.0f64 } else { 1.0 };
+                    for k in j + 1..norb {
+                        let sign_k = if (str0 >> k) & 1 == 1 { -1.0f64 } else { 1.0 };
+                        coeff += sign_j * sign_k * mat_bb[(j, k)];
                     }
-                    *target += 0.25 * coeff * source;
-                })
-        });
+                }
+                *val = coeff;
+            });
+
+        Zip::from(&mut alpha_coeffs)
+            .and(strings_a.rows())
+            .and(coeff_map.rows_mut())
+            .par_for_each(|val, row, mut cm_row| {
+                let str0 = row[0];
+                let mut coeff = Complex64::new(0.0, 0.0);
+                for j in 0..norb {
+                    let sign_j = if (str0 >> j) & 1 == 1 { -1.0f64 } else { 1.0 };
+                    cm_row += &(sign_j * &mat_ab.row(j));
+                    for k in j + 1..norb {
+                        let sign_k = if (str0 >> k) & 1 == 1 { -1.0f64 } else { 1.0 };
+                        coeff += sign_j * sign_k * mat_aa[(j, k)];
+                    }
+                }
+                *val = coeff;
+            });
+
+        Zip::from(vec.rows())
+            .and(out.rows_mut())
+            .and(&alpha_coeffs)
+            .and(coeff_map.rows())
+            .par_for_each(|source, target, alpha_coeff, cm_row| {
+                Zip::from(source)
+                    .and(target)
+                    .and(&beta_coeffs)
+                    .and(strings_b.rows())
+                    .for_each(|source, target, beta_coeff, str_row| {
+                        let str0 = str_row[0];
+                        let mut coeff = *alpha_coeff + *beta_coeff;
+                        for j in 0..norb {
+                            let sign_j =
+                                if (str0 >> j) & 1 == 1 { -1.0f64 } else { 1.0 };
+                            coeff += sign_j * cm_row[j];
+                        }
+                        *target += 0.25 * coeff * source;
+                    })
+            });
+    } else {
+        // General multi-word path (norb > 64).
+        Zip::from(&mut beta_coeffs)
+            .and(strings_b.rows())
+            .par_for_each(|val, row| {
+                let mut coeff = Complex64::new(0.0, 0.0);
+                for j in 0..norb {
+                    let sign_j =
+                        if (row[j >> 6] >> (j & 63)) & 1 == 1 { -1.0f64 } else { 1.0 };
+                    for k in j + 1..norb {
+                        let sign_k =
+                            if (row[k >> 6] >> (k & 63)) & 1 == 1 { -1.0f64 } else { 1.0 };
+                        coeff += sign_j * sign_k * mat_bb[(j, k)];
+                    }
+                }
+                *val = coeff;
+            });
+
+        Zip::from(&mut alpha_coeffs)
+            .and(strings_a.rows())
+            .and(coeff_map.rows_mut())
+            .par_for_each(|val, row, mut cm_row| {
+                let mut coeff = Complex64::new(0.0, 0.0);
+                for j in 0..norb {
+                    let sign_j =
+                        if (row[j >> 6] >> (j & 63)) & 1 == 1 { -1.0f64 } else { 1.0 };
+                    cm_row += &(sign_j * &mat_ab.row(j));
+                    for k in j + 1..norb {
+                        let sign_k =
+                            if (row[k >> 6] >> (k & 63)) & 1 == 1 { -1.0f64 } else { 1.0 };
+                        coeff += sign_j * sign_k * mat_aa[(j, k)];
+                    }
+                }
+                *val = coeff;
+            });
+
+        Zip::from(vec.rows())
+            .and(out.rows_mut())
+            .and(&alpha_coeffs)
+            .and(coeff_map.rows())
+            .par_for_each(|source, target, alpha_coeff, cm_row| {
+                Zip::from(source)
+                    .and(target)
+                    .and(&beta_coeffs)
+                    .and(strings_b.rows())
+                    .for_each(|source, target, beta_coeff, str_row| {
+                        let mut coeff = *alpha_coeff + *beta_coeff;
+                        for j in 0..norb {
+                            let sign_j =
+                                if (str_row[j >> 6] >> (j & 63)) & 1 == 1 { -1.0f64 } else { 1.0 };
+                            coeff += sign_j * cm_row[j];
+                        }
+                        *target += 0.25 * coeff * source;
+                    })
+            });
+    }
 }
