@@ -605,7 +605,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "opt-einsum" },
     { name = "orjson" },
-    { name = "pyscf", specifier = ">=2.9" },
+    { name = "pyscf", specifier = ">=2.12" },
     { name = "qiskit", specifier = ">=2.0" },
     { name = "scipy" },
     { name = "typing-extensions" },
