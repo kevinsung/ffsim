@@ -13,12 +13,64 @@
 from __future__ import annotations
 
 import numpy as np
+import pyscf.fci
 import pytest
+from scipy.sparse.linalg import LinearOperator
 
 import ffsim
 from ffsim import FermionOperator
 
 RNG = np.random.default_rng(308444818162923832831691142041679886023)
+
+
+def _reference_linear_operator(
+    coeffs: dict[tuple[tuple[bool, bool, int], ...], complex],
+    norb: int,
+    nelec: tuple[int, int],
+) -> LinearOperator:
+    """Reference FermionOperator linear operator built from PySCF ladder actions."""
+    dim = ffsim.dim(norb, nelec)
+    dim_a = pyscf.fci.cistring.num_strings(norb, nelec[0])
+    dim_b = pyscf.fci.cistring.num_strings(norb, nelec[1])
+    dims = (dim_a, dim_b)
+
+    action_funcs = {
+        # key: (action, spin)
+        (False, False): pyscf.fci.addons.des_a,
+        (False, True): pyscf.fci.addons.des_b,
+        (True, False): pyscf.fci.addons.cre_a,
+        (True, True): pyscf.fci.addons.cre_b,
+    }
+
+    def matvec(vec: np.ndarray):
+        result = np.zeros(dim, dtype=complex)
+        vec_real = np.real(vec)
+        vec_imag = np.imag(vec)
+        for term, coeff in coeffs.items():
+            transformed_real = vec_real.reshape(dims)
+            transformed_imag = vec_imag.reshape(dims)
+            this_nelec = list(nelec)
+            # A term that drives an intermediate sector out of the range [0, norb]
+            # annihilates the state, so it contributes nothing.
+            out_of_range = False
+            for action, spin, orb in reversed(term):
+                next_count = this_nelec[spin] + (1 if action else -1)
+                if not 0 <= next_count <= norb:
+                    out_of_range = True
+                    break
+                action_func = action_funcs[(action, spin)]
+                transformed_real = action_func(transformed_real, norb, this_nelec, orb)
+                transformed_imag = action_func(transformed_imag, norb, this_nelec, orb)
+                this_nelec[spin] = next_count
+            if out_of_range:
+                continue
+            result += coeff * transformed_real.reshape(-1)
+            result += coeff * 1j * transformed_imag.reshape(-1)
+        return result
+
+    return LinearOperator(
+        shape=(dim, dim), matvec=matvec, rmatvec=matvec, dtype=complex
+    )
 
 
 def test_add():
@@ -618,6 +670,50 @@ def test_linear_operator_one_body():
         np.testing.assert_allclose(original, vec)
         # check results match
         np.testing.assert_allclose(actual, expected)
+
+
+def test_linear_operator():
+    """Test linear operator."""
+    norb = 5
+    nelec = (2, 2)
+    op = ffsim.random.random_fermion_operator(
+        norb, num_and_spin_conserving=True, seed=RNG
+    )
+    vec = ffsim.random.random_state_vector(ffsim.dim(norb, nelec), seed=RNG)
+    original = vec.copy()
+    linop = ffsim.linear_operator(op, norb=norb, nelec=nelec)
+    reference_linop = _reference_linear_operator(dict(op.items()), norb, nelec)
+    reference_adjoint_linop = _reference_linear_operator(
+        dict(op.adjoint().items()), norb, nelec
+    )
+
+    np.testing.assert_allclose(linop @ vec, reference_linop @ vec, atol=1e-14)
+    np.testing.assert_allclose(
+        linop.adjoint() @ vec, reference_adjoint_linop @ vec, atol=1e-14
+    )
+    np.testing.assert_allclose(original, vec)
+
+
+def test_linear_operator_out_of_range():
+    """Test linear operator with out-of-range terms."""
+    norb = 4
+    nelec = (2, 1)
+    valid_term = (ffsim.cre_a(2), ffsim.des_a(0))
+    op = FermionOperator(
+        {
+            valid_term: 0.75 - 0.125j,
+            (ffsim.des_b(norb), ffsim.cre_b(norb)): -1.5 + 0.25j,
+            (ffsim.des_a(-1), ffsim.cre_a(-1)): -0.75 + 0.5j,
+        }
+    )
+    expected_op = FermionOperator({valid_term: 0.75 - 0.125j})
+    vec = ffsim.random.random_state_vector(ffsim.dim(norb, nelec), seed=24680)
+
+    linop = ffsim.linear_operator(op, norb=norb, nelec=nelec)
+    expected_linop = ffsim.linear_operator(expected_op, norb=norb, nelec=nelec)
+
+    np.testing.assert_allclose(linop @ vec, expected_linop @ vec)
+    np.testing.assert_allclose(linop.adjoint() @ vec, expected_linop.adjoint() @ vec)
 
 
 def test_approx_eq():

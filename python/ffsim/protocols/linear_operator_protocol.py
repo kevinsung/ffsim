@@ -14,12 +14,10 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-import numpy as np
-import pyscf.fci
 from scipy.sparse.linalg import LinearOperator
 
 from ffsim.operators import FermionOperator
-from ffsim.states.dimensions import dim, dims
+from ffsim.operators.fermion_operator import _fermion_operator_to_linear_operator
 
 
 class SupportsLinearOperator(Protocol):
@@ -60,98 +58,3 @@ def linear_operator(
         return method(norb=norb, nelec=nelec)
 
     raise TypeError(f"Object of type {type(obj)} has no _linear_operator_ method.")
-
-
-def _fermion_operator_to_linear_operator(
-    operator: FermionOperator, norb: int, nelec: int | tuple[int, int]
-):
-    if not (operator.conserves_particle_number() and operator.conserves_spin_z()):
-        raise ValueError(
-            "The given FermionOperator could not be converted to a LinearOperator "
-            "because it does not conserve particle number and the z component of spin. "
-            f"Conserves particle number: {operator.conserves_particle_number()} "
-            f"Conserves spin z: {operator.conserves_spin_z()}"
-        )
-
-    if isinstance(nelec, int):
-        nelec = (nelec, 0)
-
-    dim_ = dim(norb, nelec)
-    adjoint = operator.adjoint()
-
-    def matvec(vec: np.ndarray):
-        result = np.zeros(dim_, dtype=complex)
-        for term, coeff in operator.items():
-            result += coeff * _apply_fermion_term(vec, term, norb, nelec)
-        return result
-
-    def rmatvec(vec: np.ndarray):
-        result = np.zeros(dim_, dtype=complex)
-        for term, coeff in adjoint.items():
-            result += coeff * _apply_fermion_term(vec, term, norb, nelec)
-        return result
-
-    return LinearOperator(
-        shape=(dim_, dim_), matvec=matvec, rmatvec=rmatvec, dtype=complex
-    )
-
-
-def _apply_fermion_term(
-    vec: np.ndarray,
-    term: tuple[tuple[bool, bool, int], ...],
-    norb: int,
-    nelec: tuple[int, int],
-) -> np.ndarray:
-    """Apply a product of ladder operators to a state vector.
-
-    Given a state vector and a string of ladder operators that conserves particle number
-    and the z component of spin, return the state vector that results from applying the
-    ladder operators to the given state vector. The string of ladder operators is
-    represented as a sequence of (``action``, ``spin``, ``orbital``) tuples, where:
-
-    - ``action`` is a bool. False indicates a destruction operator and True indicates
-      a creation operator.
-    - ``spin`` is a bool. False indicates spin alpha and True indicates spin beta.
-    - ``orbital`` is an integer giving the index of the spatial orbital to act on.
-
-    The string of ladder operators acts on a state vector by left multiplication,
-    so the resulting state vector is obtained by applying the ladder operators to the
-    initial vector in the reverse order in which they are given.
-
-    Args:
-        vec: The state vector.
-        term: The product of ladder operators to apply to the state vector.
-        norb: The number of spatial orbitals.
-        nelec: The number of alpha and beta electrons.
-
-    Returns:
-        The result of applying the ladder operators to the state vector.
-    """
-    result = _apply_fermion_term_real(vec.real, term, norb, nelec)
-    result += 1j * _apply_fermion_term_real(vec.imag, term, norb, nelec)
-    return result
-
-
-def _apply_fermion_term_real(
-    vec: np.ndarray,
-    term: tuple[tuple[bool, bool, int], ...],
-    norb: int,
-    nelec: tuple[int, int],
-) -> np.ndarray:
-    action_funcs = {
-        # key: (action, spin)
-        (False, False): pyscf.fci.addons.des_a,
-        (False, True): pyscf.fci.addons.des_b,
-        (True, False): pyscf.fci.addons.cre_a,
-        (True, True): pyscf.fci.addons.cre_b,
-    }
-    (dim_a, dim_b) = dims(norb, nelec)
-    transformed = vec.reshape((dim_a, dim_b))
-    this_nelec = list(nelec)
-    for action, spin, orb in reversed(term):
-        action_func = action_funcs[(action, spin)]
-        transformed = action_func(transformed, norb, this_nelec, orb)
-        this_nelec[spin] += 1 if action else -1
-        if this_nelec[spin] < 0 or this_nelec[spin] > norb:
-            return np.zeros(dim_a * dim_b, dtype=complex)
-    return transformed.reshape(-1).astype(complex, copy=False)
