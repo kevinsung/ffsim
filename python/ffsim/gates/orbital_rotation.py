@@ -19,6 +19,7 @@ from typing import cast, overload
 import numpy as np
 from pyscf.fci import cistring
 
+from ffsim._gpu import is_gpu_array
 from ffsim._lib import apply_givens_rotation_in_place, apply_phase_shift_in_place
 from ffsim.linalg import givens_decomposition
 
@@ -102,15 +103,9 @@ def apply_orbital_rotation(
 def _apply_orbital_rotation_spinless(
     vec: np.ndarray, mat: np.ndarray, norb: int, nelec: int
 ):
-    givens_rotations, phase_shifts = givens_decomposition(mat)
-    vec = np.ascontiguousarray(vec.reshape((-1, 1)))
-    for c, s, i, j in givens_rotations:
-        _apply_orbital_rotation_adjacent_spin_in_place(
-            vec, c, s.conjugate(), (i, j), norb, nelec
-        )
-    for i, phase_shift in enumerate(phase_shifts):
-        indices = _one_subspace_indices(norb, nelec, (i,))
-        apply_phase_shift_in_place(vec, phase_shift, indices)
+    givens_decomp = givens_decomposition(mat)
+    vec = _ascontiguousarray(vec.reshape((-1, 1)))
+    _apply_orbital_rotation_spin_in_place(vec, givens_decomp, norb, nelec)
     return vec.reshape(-1)
 
 
@@ -124,32 +119,25 @@ def _apply_orbital_rotation_spinful(
     n_alpha, n_beta = nelec
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
-    vec = np.ascontiguousarray(vec.reshape((dim_a, dim_b)))
+    vec = _ascontiguousarray(vec.reshape((dim_a, dim_b)))
 
     if givens_decomp_a is not None:
         # transform alpha
-        givens_rotations, phase_shifts = givens_decomp_a
-        for c, s, i, j in givens_rotations:
-            _apply_orbital_rotation_adjacent_spin_in_place(
-                vec, c, s.conjugate(), (i, j), norb, n_alpha
-            )
-        for i, phase_shift in enumerate(phase_shifts):
-            indices = _one_subspace_indices(norb, n_alpha, (i,))
-            apply_phase_shift_in_place(vec, phase_shift, indices)
+        _apply_orbital_rotation_spin_in_place(vec, givens_decomp_a, norb, n_alpha)
 
     if givens_decomp_b is not None:
         # transform beta
-        # copy transposed vector to align memory layout
-        vec = np.ascontiguousarray(vec.T)
-        givens_rotations, phase_shifts = givens_decomp_b
-        for c, s, i, j in givens_rotations:
-            _apply_orbital_rotation_adjacent_spin_in_place(
-                vec, c, s.conjugate(), (i, j), norb, n_beta
+        if is_gpu_array(vec):
+            # the CUDA kernels index either axis, so the columns can be
+            # transformed in place rather than through a transposed copy
+            _apply_orbital_rotation_spin_in_place(
+                vec, givens_decomp_b, norb, n_beta, axis=1
             )
-        for i, phase_shift in enumerate(phase_shifts):
-            indices = _one_subspace_indices(norb, n_beta, (i,))
-            apply_phase_shift_in_place(vec, phase_shift, indices)
-        vec = vec.T
+        else:
+            # copy transposed vector to align memory layout
+            vec = _ascontiguousarray(vec.T)
+            _apply_orbital_rotation_spin_in_place(vec, givens_decomp_b, norb, n_beta)
+            vec = vec.T
 
     return vec.reshape(-1)
 
@@ -174,6 +162,59 @@ def _get_givens_decomposition(
         return decomp_a, decomp_b
 
 
+def _ascontiguousarray(vec: np.ndarray) -> np.ndarray:
+    """Return a contiguous array, using the array's own namespace."""
+    if is_gpu_array(vec):
+        import cupy  # type: ignore
+
+        return cupy.ascontiguousarray(vec)
+    return np.ascontiguousarray(vec)
+
+
+def _apply_orbital_rotation_spin_in_place(
+    vec: np.ndarray,
+    givens_decomp: tuple[list, np.ndarray],
+    norb: int,
+    nocc: int,
+    axis: int = 0,
+) -> None:
+    """Apply a Givens decomposition to one spin sector in-place.
+
+    Args:
+        vec: The state vector, as a two-dimensional array.
+        givens_decomp: The Givens rotations and phase shifts to apply.
+        norb: The number of spatial orbitals.
+        nocc: The number of occupied orbitals of the spin sector.
+        axis: The axis of ``vec`` holding the determinants of the spin sector.
+    """
+    givens_rotations, phase_shifts = givens_decomp
+    for c, s, i, j in givens_rotations:
+        _apply_orbital_rotation_adjacent_spin_in_place(
+            vec, c, s.conjugate(), (i, j), norb, nocc, axis=axis
+        )
+    _apply_phase_shifts_in_place(vec, phase_shifts, norb, nocc, axis=axis)
+
+
+def _apply_phase_shifts_in_place(
+    vec: np.ndarray, phase_shifts: np.ndarray, norb: int, nocc: int, axis: int = 0
+) -> None:
+    """Apply the phase shifts from a Givens decomposition in-place."""
+    if is_gpu_array(vec):
+        from ffsim._gpu.gates import orbital_rotation as gpu_orbital_rotation
+        from ffsim._gpu.gates import phase_shift as gpu_phase_shift
+
+        for i, phase_shift in enumerate(phase_shifts):
+            indices = gpu_orbital_rotation.one_subspace_indices(norb, nocc, (i,))
+            gpu_phase_shift.apply_phase_shift_in_place(
+                vec, phase_shift, indices, axis=axis
+            )
+    else:
+        assert not axis
+        for i, phase_shift in enumerate(phase_shifts):
+            indices = _one_subspace_indices(norb, nocc, (i,))
+            apply_phase_shift_in_place(vec, phase_shift, indices)
+
+
 def _apply_orbital_rotation_adjacent_spin_in_place(
     vec: np.ndarray,
     c: float,
@@ -181,22 +222,38 @@ def _apply_orbital_rotation_adjacent_spin_in_place(
     target_orbs: tuple[int, int],
     norb: int,
     nocc: int,
+    axis: int = 0,
 ) -> None:
     """Apply an orbital rotation to adjacent orbitals.
 
     Args:
         vec: Vector to be transformed.
-        mat: A 2x2 unitary matrix describing the orbital rotation.
+        c: The cosine of the rotation angle.
+        s: The sine of the rotation angle.
         target_orbs: The orbitals to transform.
         norb: Number of spatial orbitals.
-        nelec: Number of alpha and beta electrons.
+        nocc: Number of occupied orbitals of the spin sector.
+        axis: The axis of ``vec`` holding the determinants of the spin sector.
     """
     i, j = target_orbs
     assert i == j + 1 or i == j - 1, "Target orbitals must be adjacent."
-    indices = _zero_one_subspace_indices(norb, nocc, target_orbs)
-    slice1 = indices[: len(indices) // 2]
-    slice2 = indices[len(indices) // 2 :]
-    apply_givens_rotation_in_place(vec, c, s, slice1, slice2)
+    if is_gpu_array(vec):
+        from ffsim._gpu.gates import orbital_rotation as gpu_orbital_rotation
+
+        indices = gpu_orbital_rotation.zero_one_subspace_indices(
+            norb, nocc, target_orbs
+        )
+        slice1 = indices[: len(indices) // 2]
+        slice2 = indices[len(indices) // 2 :]
+        gpu_orbital_rotation.apply_givens_rotation_in_place(
+            vec, c, s, slice1, slice2, axis=axis
+        )
+    else:
+        assert not axis
+        indices = _zero_one_subspace_indices(norb, nocc, target_orbs)
+        slice1 = indices[: len(indices) // 2]
+        slice2 = indices[len(indices) // 2 :]
+        apply_givens_rotation_in_place(vec, c, s, slice1, slice2)
 
 
 @cache

@@ -19,16 +19,22 @@ For improved performance on [x86](https://en.wikipedia.org/wiki/X86) systems, co
 
 ### GPU acceleration
 
-Some functions in ffsim are implemented with [JAX](https://docs.jax.dev/), which uses the CPU by default. If you have an NVIDIA GPU, you can install the appropriate extra to let JAX use the GPU instead:
+If you have an NVIDIA GPU, you can install the extra matching your CUDA version:
 
 ```bash
 pip install "ffsim[cuda12]"  # for CUDA 12
 pip install "ffsim[cuda13]"  # for CUDA 13
 ```
 
-These extras install a CUDA-enabled JAX; no changes to your code are required, because JAX selects the GPU automatically once the plugin is present. The GPU wheels are only published for Linux.
+The GPU wheels are only published for Linux. Your GPU must also be supported by the CUDA version you choose; for example, CUDA 13 dropped support for Maxwell, Pascal, and Volta GPUs, so those require the `cuda12` extra.
 
-The speedup grows with the number of orbitals, and is negligible below roughly 16 orbitals, where the cost is dominated by kernel launch overhead rather than by the linear algebra. To force the CPU path for comparison, set the environment variable `JAX_PLATFORMS=cpu`.
+These extras enable GPU acceleration in two independent parts of ffsim.
+
+**State vector simulation.** The extras install [CuPy](https://cupy.dev/), which ffsim uses to run circuit simulation on the GPU: the gate application functions, `apply_unitary`, and Trotter time evolution. To use it, transfer your state vector to the GPU with `cupy.asarray`; ffsim dispatches on the array type, so no other changes to your code are required. The speedup grows with the size of the state vector, and small systems may run faster on the CPU, where the cost is dominated by kernel launch overhead. To force the CPU path for comparison, keep your state vector as a Numpy array. See [How to simulate on a GPU with CUDA](how-to-guides/gpu-simulation.md) for details and for the list of supported operations.
+
+**Linear algebra.** Some functions in ffsim, such as orbital optimization and the compressed double factorization, are implemented with [JAX](https://docs.jax.dev/), which uses the CPU by default. The extras install a CUDA-enabled JAX, and no changes to your code are required, because JAX selects the GPU automatically once the plugin is present. Here too the speedup grows with the number of orbitals, and is negligible below roughly 16 orbitals, where the cost is dominated by kernel launch overhead rather than by the linear algebra. To force the CPU path for comparison, set the environment variable `JAX_PLATFORMS=cpu`.
+
+By default, JAX preallocates a large fraction of the GPU's memory when it initializes its CUDA backend, which leaves less available for state vectors. If you use both parts together, set `XLA_PYTHON_CLIENT_PREALLOCATE=false` so that JAX allocates only what it needs.
 
 ## Install from source
 
