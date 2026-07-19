@@ -5,6 +5,7 @@
 
 sample-from-state-vectors
 compute-expectation-values
+gpu-simulation
 simulate-vqe
 simulate-trotter-mol-ham
 simulate-trotter-hubbard

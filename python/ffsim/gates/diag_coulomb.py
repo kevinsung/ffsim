@@ -19,6 +19,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ffsim._cistring import gen_occslst, make_strings
+from ffsim._gpu import is_gpu_array
 from ffsim._lib import (
     apply_diag_coulomb_evolution_in_place_num_rep,
     apply_diag_coulomb_evolution_in_place_z_rep,
@@ -179,7 +180,34 @@ def _apply_diag_coulomb_evolution_spinful(
         )
 
     vec = vec.reshape((dim_a, dim_b))
-    if z_representation:
+    if is_gpu_array(vec):
+        from ffsim._gpu import _cistring as gpu_cistring
+        from ffsim._gpu.gates import diag_coulomb as gpu_diag_coulomb
+
+        if z_representation:
+            gpu_diag_coulomb.apply_diag_coulomb_evolution_in_place_z_rep(
+                vec,
+                mat_exp_aa,
+                mat_exp_ab,
+                mat_exp_bb,
+                mat_exp_aa.conj(),
+                mat_exp_ab.conj(),
+                mat_exp_bb.conj(),
+                norb=norb,
+                strings_a=gpu_cistring.strings(norb, n_alpha),
+                strings_b=gpu_cistring.strings(norb, n_beta),
+            )
+        else:
+            gpu_diag_coulomb.apply_diag_coulomb_evolution_in_place_num_rep(
+                vec,
+                mat_exp_aa,
+                mat_exp_ab,
+                mat_exp_bb,
+                norb=norb,
+                occupations_a=gpu_cistring.occslst(norb, n_alpha),
+                occupations_b=gpu_cistring.occslst(norb, n_beta),
+            )
+    elif z_representation:
         strings_a = make_strings(range(norb), n_alpha)
         strings_b = make_strings(range(norb), n_beta)
         apply_diag_coulomb_evolution_in_place_z_rep(

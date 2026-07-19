@@ -18,8 +18,27 @@ from typing import cast, overload
 import numpy as np
 
 from ffsim._cistring import gen_occslst
+from ffsim._gpu import is_gpu_array
 from ffsim._lib import apply_num_op_sum_evolution_in_place
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
+
+
+def _apply_num_op_sum_evolution_in_place(
+    vec: np.ndarray, phases: np.ndarray, norb: int, nocc: int
+) -> None:
+    """Apply time evolution by a sum of number operators in-place."""
+    if is_gpu_array(vec):
+        import cupy  # type: ignore
+
+        from ffsim._gpu._cistring import occslst
+        from ffsim._gpu.gates import num_op_sum as gpu_num_op_sum
+
+        gpu_num_op_sum.apply_num_op_sum_evolution_in_place(
+            vec, cupy.asarray(phases), occupations=occslst(norb, nocc)
+        )
+    else:
+        occupations = gen_occslst(range(norb), nocc)
+        apply_num_op_sum_evolution_in_place(vec, phases, occupations=occupations)
 
 
 def _conjugate_orbital_rotation(
@@ -149,7 +168,6 @@ def _apply_num_op_sum_evolution_spinless(
     orbital_rotation: np.ndarray | None,
 ) -> np.ndarray:
     phases = np.exp(-1j * time * coeffs)
-    occupations = gen_occslst(range(norb), nelec)
     if orbital_rotation is not None:
         vec = apply_orbital_rotation(
             vec,
@@ -159,7 +177,7 @@ def _apply_num_op_sum_evolution_spinless(
             copy=False,
         )
     vec = vec.reshape((-1, 1))
-    apply_num_op_sum_evolution_in_place(vec, phases, occupations=occupations)
+    _apply_num_op_sum_evolution_in_place(vec, phases, norb, nelec)
     vec = vec.reshape(-1)
     if orbital_rotation is not None:
         vec = apply_orbital_rotation(
@@ -184,8 +202,6 @@ def _apply_num_op_sum_evolution_spinful(
     n_alpha, n_beta = nelec
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
-    occupations_a = gen_occslst(range(norb), n_alpha)
-    occupations_b = gen_occslst(range(norb), n_beta)
 
     if orbital_rotation is not None:
         vec = apply_orbital_rotation(
@@ -199,11 +215,11 @@ def _apply_num_op_sum_evolution_spinful(
     vec = vec.reshape((dim_a, dim_b))
     if phases_a is not None:
         # apply alpha
-        apply_num_op_sum_evolution_in_place(vec, phases_a, occupations=occupations_a)
+        _apply_num_op_sum_evolution_in_place(vec, phases_a, norb, n_alpha)
     if phases_b is not None:
         # apply beta
         vec = vec.T
-        apply_num_op_sum_evolution_in_place(vec, phases_b, occupations=occupations_b)
+        _apply_num_op_sum_evolution_in_place(vec, phases_b, norb, n_beta)
         vec = vec.T
     vec = vec.reshape(-1)
 
