@@ -19,6 +19,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from ffsim import linalg
+from ffsim._gpu import is_gpu_array
 from ffsim.gates.num_op_sum import apply_num_op_sum_evolution
 from ffsim.gates.orbital_rotation import _one_subspace_indices, apply_orbital_rotation
 from ffsim.states.spin import Spin, pair_for_spin
@@ -45,9 +46,22 @@ def _apply_phase_shift(
     dim_b = math.comb(norb, n_beta)
     vec = vec.reshape((dim_a, dim_b))
     target_orbs_a, target_orbs_b = target_orbs
-    indices_a = _one_subspace_indices(norb, n_alpha, target_orbs_a)
-    indices_b = _one_subspace_indices(norb, n_beta, target_orbs_b)
-    vec[np.ix_(indices_a, indices_b)] *= phase
+    if is_gpu_array(vec):
+        import cupy  # type: ignore
+
+        from ffsim._gpu.gates import orbital_rotation as gpu_orbital_rotation
+
+        indices_a = gpu_orbital_rotation.one_subspace_indices(
+            norb, n_alpha, target_orbs_a
+        )
+        indices_b = gpu_orbital_rotation.one_subspace_indices(
+            norb, n_beta, target_orbs_b
+        )
+        vec[cupy.ix_(indices_a, indices_b)] *= phase
+    else:
+        indices_a = _one_subspace_indices(norb, n_alpha, target_orbs_a)
+        indices_b = _one_subspace_indices(norb, n_beta, target_orbs_b)
+        vec[np.ix_(indices_a, indices_b)] *= phase
     return vec.reshape(-1)
 
 
