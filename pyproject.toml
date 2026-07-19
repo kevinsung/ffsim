@@ -33,6 +33,10 @@ dependencies = [
     "typing-extensions",
 ]
 
+[project.optional-dependencies]
+cuda12 = ["cupy-cuda12x", "jax[cuda12]"]
+cuda13 = ["cupy-cuda13x", "jax[cuda13]"]
+
 [project.urls]
 Homepage = "https://github.com/qiskit-community/ffsim"
 Documentation = "https://qiskit-community.github.io/ffsim/"
@@ -76,6 +80,9 @@ environment = { RUSTFLAGS = "-C target-cpu=x86-64" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = ["*/ffsim/_gpu/*"]
 
 [tool.mypy]
 check_untyped_defs = true
