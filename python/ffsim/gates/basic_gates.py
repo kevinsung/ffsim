@@ -21,6 +21,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from ffsim import linalg
+from ffsim._gpu import is_gpu_array
 from ffsim._lib import apply_phase_shift_in_place
 from ffsim.gates.num_op_sum import apply_num_op_sum_evolution
 from ffsim.gates.orbital_rotation import _one_subspace_indices, apply_orbital_rotation
@@ -394,13 +395,21 @@ def apply_num_op_prod_interaction(
     vec = vec.reshape((dim_a, dim_b))
     # Tuples because _one_subspace_indices is cached on its arguments
     alpha_orbs, beta_orbs = map(tuple, target_orbs)
+    if is_gpu_array(vec):
+        from ffsim._gpu.gates.orbital_rotation import one_subspace_indices
+        from ffsim._gpu.gates.phase_shift import (
+            apply_phase_shift_in_place as phase_shift_in_place,
+        )
+    else:
+        one_subspace_indices = _one_subspace_indices
+        phase_shift_in_place = apply_phase_shift_in_place
     # None selects all rows or columns, which avoids indexing when a spin sector
     # has no target orbitals
     row_indices = (
-        _one_subspace_indices(norb, n_alpha, alpha_orbs) if alpha_orbs else None
+        one_subspace_indices(norb, n_alpha, alpha_orbs) if alpha_orbs else None
     )
-    col_indices = _one_subspace_indices(norb, n_beta, beta_orbs) if beta_orbs else None
-    apply_phase_shift_in_place(vec, cmath.exp(1j * theta), row_indices, col_indices)
+    col_indices = one_subspace_indices(norb, n_beta, beta_orbs) if beta_orbs else None
+    phase_shift_in_place(vec, cmath.exp(1j * theta), row_indices, col_indices)
     return vec.reshape(-1)
 
 
