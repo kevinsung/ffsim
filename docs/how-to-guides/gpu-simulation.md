@@ -72,6 +72,16 @@ The following operations accept CuPy state vectors:
 - Trotter simulation: `ffsim.simulate_trotter_diag_coulomb_split_op` and
   `ffsim.simulate_trotter_double_factorized`
 
-Other operations, such as operator contraction (`ffsim.linear_operator`),
-expectation values, sampling, and the Qiskit integration, currently run only
-on the CPU. Transfer the state vector back with `cupy.asnumpy` to use them.
+In addition, the linear operator returned by `ffsim.linear_operator` for a
+`MolecularHamiltonian` (or `MolecularHamiltonianSpinless`) with real-valued
+tensors automatically performs its matrix-vector products on the GPU when CuPy
+and a CUDA device are available. This linear operator takes and returns Numpy
+arrays, so code that uses it (for example, time evolution via
+`scipy.sparse.linalg.expm_multiply`) speeds up without any changes. The GPU is
+not used for Hamiltonians with complex-valued tensors, or when the computation
+does not fit in GPU memory; in those cases the computation falls back to the
+CPU.
+
+Other operations, such as other operator contractions, expectation values,
+sampling, and the Qiskit integration, currently run only on the CPU. Transfer
+the state vector back with `cupy.asnumpy` to use them.

@@ -29,6 +29,7 @@ from scipy.sparse.linalg import LinearOperator
 
 from ffsim import states
 from ffsim._cistring import gen_linkstr_index, gen_linkstr_index_trilidx
+from ffsim._gpu import gpu_available
 
 
 def two_body_linop(
@@ -97,10 +98,12 @@ def _two_body_linop_real(
         one_body_tensor, two_body_tensor, norb, nelec, 0.5
     )
 
+    contract = _two_body_contraction_real(
+        two_body_tensor, norb=norb, nelec=nelec, link_index=link_index
+    )
+
     def matvec(vec: np.ndarray):
-        result = contract_2e_spin1(
-            two_body_tensor, vec, norb, nelec, link_index=link_index
-        )
+        result = contract(vec)
         if constant:
             result += constant * vec
         return result
@@ -109,6 +112,30 @@ def _two_body_linop_real(
     return LinearOperator(
         shape=(dim_, dim_), matvec=matvec, rmatvec=matvec, dtype=complex
     )
+
+
+def _two_body_contraction_real(
+    two_body_tensor: np.ndarray,
+    norb: int,
+    nelec: tuple[int, int],
+    link_index: tuple[np.ndarray, np.ndarray],
+):
+    """Return a function contracting the absorbed two-body tensor with a vector.
+
+    Uses the GPU when CuPy and a CUDA device are available and the computation
+    fits in GPU memory; otherwise uses pyscf on the CPU.
+    """
+    linkstr_index_a, linkstr_index_b = link_index
+    if gpu_available():
+        from ffsim._gpu.contract.two_body import TwoBodyContraction, fits_in_memory
+
+        if fits_in_memory(norb, len(linkstr_index_a), len(linkstr_index_b)):
+            return TwoBodyContraction(two_body_tensor, norb, link_index)
+
+    def contract(vec: np.ndarray):
+        return contract_2e_spin1(two_body_tensor, vec, norb, nelec, link_index)
+
+    return contract
 
 
 def _two_body_linop_complex(
