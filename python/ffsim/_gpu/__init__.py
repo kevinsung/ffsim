@@ -17,9 +17,21 @@ module's top level imports it, so importing ffsim does not require CuPy.
 
 from __future__ import annotations
 
+from functools import cache
 from typing import Any
 
 
 def is_gpu_array(vec: Any) -> bool:
     """Return whether an array is a CuPy array, without importing CuPy."""
     return type(vec).__module__.partition(".")[0] == "cupy"
+
+
+@cache
+def gpu_available() -> bool:
+    """Return whether CuPy and a CUDA device are available."""
+    try:
+        import cupy  # type: ignore
+
+        return bool(cupy.cuda.runtime.getDeviceCount())
+    except Exception:
+        return False
