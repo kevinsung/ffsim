@@ -210,6 +210,66 @@ def test_ucj_energy_spinless(pairs):
     assert optimized_energy < ucj_energy
 
 
+def test_ucj_energy_singular_overlap_spinless():
+    """Test energy and gradient near a singular occupied-space overlap."""
+    norb = 4
+    nelec = 2
+    orbital_rotation = 0.5 * np.array(
+        [
+            [1, 1, 1, 1],
+            [1, -1, 1, -1],
+            [1, 1, -1, -1],
+            [1, -1, -1, 1],
+        ],
+        dtype=complex,
+    )
+    diag_coulomb_mat = (np.pi / 6) * np.array(
+        [
+            [0, -1, 1, -2],
+            [-1, 0, 1, -2],
+            [1, 1, 0, 2],
+            [-2, -2, 2, 0],
+        ],
+        dtype=float,
+    )
+    ucj_op = ffsim.UCJOpSpinless(
+        diag_coulomb_mats=diag_coulomb_mat[None],
+        orbital_rotations=orbital_rotation[None],
+    )
+
+    # At the unperturbed point, one of the occupied-space overlap matrices has rank
+    # one. A tiny perturbation exposes numerical cancellation in implementations that
+    # compute the overlap determinant and inverse separately.
+    params = ucj_op.to_parameters()
+    params[0] -= 1e-10
+    ucj_op = ffsim.UCJOpSpinless.from_parameters(params, norb=norb, n_reps=1)
+    mol_hamiltonian = ffsim.random.random_molecular_hamiltonian_spinless(norb, seed=0)
+
+    expected = statevector_energy(ucj_op, mol_hamiltonian, norb, nelec)
+    actual = ffsim.ucj_energy_spinless(ucj_op, mol_hamiltonian, nelec)
+    chunked = ffsim.ucj_energy_spinless(ucj_op, mol_hamiltonian, nelec, chunk_size=1)
+    np.testing.assert_allclose(actual, expected, rtol=1e-12, atol=1e-12)
+    np.testing.assert_allclose(chunked, expected, rtol=1e-12, atol=1e-12)
+
+    value_and_grad = ffsim.ucj_energy_and_grad_func_spinless(
+        ucj_op, mol_hamiltonian, nelec
+    )
+    value, grad = value_and_grad(params)
+    np.testing.assert_allclose(value, expected, rtol=1e-12, atol=1e-12)
+    assert np.all(np.isfinite(grad))
+
+    for index in [0, 5, 6, 8, 22]:
+        finite_diff = finite_diff_grad(
+            statevector_energy,
+            ffsim.UCJOpSpinless.from_parameters,
+            params,
+            index=index,
+            energy_args=(mol_hamiltonian, norb, nelec),
+            from_parameters_kwargs=dict(norb=norb, n_reps=1),
+        )
+        np.testing.assert_allclose(grad[index], finite_diff, rtol=1e-4, atol=1e-5)
+
+
 def test_ucj_energy_chunk_size_nondivisor_spin_balanced():
     """Test two-body chunking with chunk sizes that do not divide term counts."""
     norb = 4
