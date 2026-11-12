@@ -57,6 +57,25 @@ import ffsim
 RNG = np.random.default_rng(26315741277058578238401729559131932765)
 
 
+def test_final_state_vector_dtype():
+    """final_state_vector simulates the circuit in the requested precision."""
+    norb, nelec = 5, (3, 2)
+    ucj_op = ffsim.random.random_ucj_op_spin_balanced(
+        norb, n_reps=2, with_final_orbital_rotation=True, seed=RNG
+    )
+    qubits = QuantumRegister(2 * norb)
+    circuit = QuantumCircuit(qubits)
+    circuit.append(ffsim.qiskit.PrepareHartreeFockJW(norb, nelec), qubits)
+    circuit.append(ffsim.qiskit.UCJOpSpinBalancedJW(ucj_op), qubits)
+    expected = ffsim.apply_unitary(
+        ffsim.hartree_fock_state(norb, nelec), ucj_op, norb, nelec
+    )
+    for dtype, atol in [(np.complex128, 1e-12), (np.complex64, 1e-5)]:
+        result = ffsim.qiskit.final_state_vector(circuit, dtype=dtype)
+        assert result.vec.dtype == dtype
+        np.testing.assert_allclose(result.vec, expected, atol=atol)
+
+
 def _brickwork(norb: int, n_layers: int):
     for i in range(n_layers):
         for j in range(i % 2, norb - 1, 2):

@@ -513,17 +513,18 @@ def test_apply_num_op_prod_strided_in_place():
 
 @pytest.mark.parametrize("shape", [(1000, 400), (100_000, 1), (1, 100_000), (7, 5)])
 @pytest.mark.parametrize("layout", ["C", "F", "strided"])
-def test_apply_phase_shift_in_place(shape: tuple[int, int], layout: str):
+@pytest.mark.parametrize("dtype", [np.complex128, np.complex64])
+def test_apply_phase_shift_in_place(shape: tuple[int, int], layout: str, dtype):
     """Test phase shift kernel on a submatrix."""
     n_rows, n_cols = shape
     # Large enough shapes reach the parallel code path, and the F-ordered and
     # strided layouts reach the non-contiguous fallback
     for row_sel, col_sel in itertools.product([None, "subset", "empty"], repeat=2):
         if layout == "strided":
-            base = RNG.standard_normal((n_rows, 2 * n_cols)).astype(complex)
+            base = RNG.standard_normal((n_rows, 2 * n_cols)).astype(dtype)
             mat = base[:, ::2]
         else:
-            mat = RNG.standard_normal((n_rows, n_cols)).astype(complex)
+            mat = RNG.standard_normal((n_rows, n_cols)).astype(dtype)
             if layout == "F":
                 mat = np.asfortranarray(mat)
         row_indices = _random_indices(n_rows, row_sel, sort=True)
@@ -537,7 +538,10 @@ def test_apply_phase_shift_in_place(shape: tuple[int, int], layout: str):
             cols = slice(None) if col_indices is None else col_indices
             expected[rows, cols] *= phase
         apply_phase_shift_in_place(mat, phase, row_indices, col_indices)
-        np.testing.assert_allclose(mat, expected)
+        assert mat.dtype == dtype
+        np.testing.assert_allclose(
+            mat, expected, rtol=1e-6 if dtype == np.complex64 else 1e-7
+        )
 
 
 def _random_indices(n: int, selection: str | None, sort: bool) -> np.ndarray | None:

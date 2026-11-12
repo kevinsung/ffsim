@@ -80,3 +80,13 @@ def test_num_op_sum_to_linop():
     )
 
     np.testing.assert_allclose(result, expected)
+
+
+def test_contract_num_op_sum_rejects_complex_coefficients():
+    """contract_num_op_sum rejects complex coefficients instead of truncating them."""
+    norb, nelec = 4, (2, 2)
+    vec = ffsim.random.random_state_vector(ffsim.dim(norb, nelec), seed=RNG)
+    with pytest.raises(TypeError):
+        ffsim.contract.contract_num_op_sum(
+            vec, np.array([1, 1j, 0, 0]), norb=norb, nelec=nelec
+        )

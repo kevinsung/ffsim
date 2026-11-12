@@ -13,6 +13,7 @@
 use pyo3::prelude::*;
 
 mod contract;
+mod dtype;
 mod fermion_operator;
 mod gates;
 mod jordan_wigner;

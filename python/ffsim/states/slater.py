@@ -20,9 +20,11 @@ from typing import cast, overload
 
 import numpy as np
 import scipy.linalg
+from numpy.typing import DTypeLike
 from pyscf.fci import cistring
 
 from ffsim import linalg
+from ffsim._dtype import complex_state_dtype
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
 from ffsim.states.bitstring import bitstring_to_occupied_orbitals
 from ffsim.states.dimensions import dims
@@ -33,6 +35,8 @@ def slater_determinant(
     norb: int,
     occupied_orbitals: Sequence[int],
     orbital_rotation: np.ndarray | None = None,
+    *,
+    dtype: DTypeLike = complex,
 ) -> np.ndarray: ...
 @overload
 def slater_determinant(
@@ -41,6 +45,8 @@ def slater_determinant(
     orbital_rotation: np.ndarray
     | tuple[np.ndarray | None, np.ndarray | None]
     | None = None,
+    *,
+    dtype: DTypeLike = complex,
 ) -> np.ndarray: ...
 def slater_determinant(
     norb: int,
@@ -48,6 +54,8 @@ def slater_determinant(
     orbital_rotation: np.ndarray
     | tuple[np.ndarray | None, np.ndarray | None]
     | None = None,
+    *,
+    dtype: DTypeLike = complex,
 ) -> np.ndarray:
     r"""Return a Slater determinant.
 
@@ -74,12 +82,16 @@ def slater_determinant(
             If passing a pair, you can use ``None`` for one of the
             values in the pair to indicate that no operation should be applied to
             that spin sector.
+        dtype: The data type of the state vector, either ``complex128`` (the
+            default) or ``complex64``. A real data type is promoted to the complex
+            data type of the same precision.
 
     Returns:
         The Slater determinant as a state vector.
     """
+    dtype = complex_state_dtype(dtype)
     if norb == 0:
-        return np.ones(1, dtype=complex)
+        return np.ones(1, dtype=dtype)
 
     if not occupied_orbitals or isinstance(occupied_orbitals[0], (int, np.integer)):
         occupied_orbitals = (cast(Sequence[int], occupied_orbitals), [])
@@ -93,17 +105,17 @@ def slater_determinant(
     dim1, dim2 = dims(norb, nelec)
     alpha_index = cistring.str2addr(norb, n_alpha, sum(1 << i for i in alpha_orbitals))
     beta_index = cistring.str2addr(norb, n_beta, sum(1 << i for i in beta_orbitals))
-    vec = linalg.one_hot(
-        (dim1, dim2), (alpha_index, beta_index), dtype=complex
-    ).reshape(-1)
+    sign = _permutation_sign(np.argsort(alpha_orbitals)) * _permutation_sign(
+        np.argsort(beta_orbitals)
+    )
+    vec = linalg.one_hot((dim1, dim2), (alpha_index, beta_index), dtype=dtype)
+    vec = vec.reshape(-1)
     if orbital_rotation is not None:
         vec = apply_orbital_rotation(
             vec, orbital_rotation, norb=norb, nelec=nelec, copy=False
         )
-    sign = _permutation_sign(np.argsort(alpha_orbitals)) * _permutation_sign(
-        np.argsort(beta_orbitals)
-    )
-    return sign * vec
+    vec *= sign
+    return vec
 
 
 def _permutation_sign(perm: np.ndarray) -> int:
@@ -122,7 +134,9 @@ def _permutation_sign(perm: np.ndarray) -> int:
     return -1 if parity else 1
 
 
-def hartree_fock_state(norb: int, nelec: int | tuple[int, int]) -> np.ndarray:
+def hartree_fock_state(
+    norb: int, nelec: int | tuple[int, int], *, dtype: DTypeLike = complex
+) -> np.ndarray:
     """Return the Hartree-Fock state.
 
     Args:
@@ -130,15 +144,20 @@ def hartree_fock_state(norb: int, nelec: int | tuple[int, int]) -> np.ndarray:
         nelec: Either a single integer representing the number of fermions for a
             spinless system, or a pair of integers storing the numbers of spin alpha
             and spin beta fermions.
+        dtype: The data type of the state vector, either ``complex128`` (the
+            default) or ``complex64``. A real data type is promoted to the complex
+            data type of the same precision.
 
     Returns:
         The Hartree-Fock state as a state vector.
     """
     if isinstance(nelec, int):
-        return slater_determinant(norb, occupied_orbitals=range(nelec))
+        return slater_determinant(norb, occupied_orbitals=range(nelec), dtype=dtype)
 
     n_alpha, n_beta = nelec
-    return slater_determinant(norb, occupied_orbitals=(range(n_alpha), range(n_beta)))
+    return slater_determinant(
+        norb, occupied_orbitals=(range(n_alpha), range(n_beta)), dtype=dtype
+    )
 
 
 @overload

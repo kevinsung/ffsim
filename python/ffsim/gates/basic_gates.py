@@ -21,6 +21,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from ffsim import linalg
+from ffsim._dtype import as_complex_state_vector
 from ffsim._lib import apply_phase_shift_in_place
 from ffsim.gates.num_op_sum import apply_num_op_sum_evolution
 from ffsim.gates.orbital_rotation import _one_subspace_indices, apply_orbital_rotation
@@ -63,7 +64,9 @@ def apply_givens_rotation(
         \end{pmatrix}
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         theta: The rotation angle.
         target_orbs: The orbitals (p, q) to rotate.
         norb: The number of spatial orbitals.
@@ -132,7 +135,9 @@ def apply_tunneling_interaction(
         \end{pmatrix}
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         theta: The rotation angle.
         target_orbs: The orbitals (p, q) on which to apply the interaction.
         norb: The number of spatial orbitals.
@@ -188,7 +193,9 @@ def apply_num_interaction(
         \exp\left(i \theta a^\dagger_{p\sigma} a_{p\sigma}\right)
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         theta: The rotation angle.
         target_orb: The orbital on which to apply the interaction.
         norb: The number of spatial orbitals.
@@ -210,15 +217,14 @@ def apply_num_interaction(
               It is also possible that the original vector is returned,
               modified in-place.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     coeffs = linalg.one_hot((norb,), target_orb)
     if isinstance(nelec, int):
         return apply_num_op_sum_evolution(
-            vec, coeffs, -theta, norb=norb, nelec=nelec, copy=copy
+            vec, coeffs, -theta, norb=norb, nelec=nelec, copy=False
         )
     return apply_num_op_sum_evolution(
-        vec, pair_for_spin(coeffs, spin), -theta, norb=norb, nelec=nelec, copy=copy
+        vec, pair_for_spin(coeffs, spin), -theta, norb=norb, nelec=nelec, copy=False
     )
 
 
@@ -243,7 +249,9 @@ def apply_num_num_interaction(
         a^\dagger_{q\sigma} a_{q\sigma}\right)
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         theta: The rotation angle.
         target_orbs: The orbitals (p, q) to interact.
         norb: The number of spatial orbitals.
@@ -269,8 +277,7 @@ def apply_num_num_interaction(
         raise ValueError(
             f"The orbitals to interact must be distinct. Got {target_orbs}."
         )
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     if isinstance(nelec, int):
         return apply_num_op_prod_interaction(
             vec,
@@ -321,7 +328,9 @@ def apply_on_site_interaction(
         a^\dagger_{p\beta} a_{p\beta}\right)
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         theta: The rotation angle.
         target_orb: The orbital on which to apply the interaction.
         norb: The number of spatial orbitals.
@@ -335,8 +344,7 @@ def apply_on_site_interaction(
               It is also possible that the original vector is returned,
               modified in-place.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     vec = apply_num_op_prod_interaction(
         vec,
         theta,
@@ -370,7 +378,9 @@ def apply_num_op_prod_interaction(
         \right)
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         theta: The rotation angle.
         target_orbs: A pair of lists of integers giving the orbitals on which to apply
             the interaction. The first list specifies the alpha orbitals and the second
@@ -386,8 +396,7 @@ def apply_num_op_prod_interaction(
               It is also possible that the original vector is returned,
               modified in-place.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     n_alpha, n_beta = nelec
     dim_a = math.comb(norb, n_alpha)
     dim_b = math.comb(norb, n_beta)
@@ -444,7 +453,9 @@ def apply_hop_gate(
         \end{pmatrix}
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         theta: The rotation angle.
         target_orbs: The orbitals (p, q) to interact.
         norb: The number of spatial orbitals.
@@ -466,8 +477,7 @@ def apply_hop_gate(
               It is also possible that the original vector is returned,
               modified in-place.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     vec = apply_givens_rotation(
         vec, theta, target_orbs, norb=norb, nelec=nelec, spin=spin, copy=False
     )
@@ -518,7 +528,9 @@ def apply_fsim_gate(
         \end{pmatrix}
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         theta: The rotation angle for the tunneling interaction.
         phi: The phase angle for the number-number interaction.
         target_orbs: The orbitals (p, q) to interact.
@@ -541,8 +553,7 @@ def apply_fsim_gate(
               It is also possible that the original vector is returned,
               modified in-place.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     vec = apply_tunneling_interaction(
         vec, -theta, target_orbs, norb=norb, nelec=nelec, spin=spin, copy=False
     )
@@ -582,7 +593,9 @@ def apply_fswap_gate(
         \end{pmatrix}
 
     Args:
-        vec: The state vector to be transformed. 
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         target_orbs: The orbitals (p, q) to swap.
         norb: The number of spatial orbitals.
         nelec: Either a single integer representing the number of fermions for a
@@ -598,8 +611,7 @@ def apply_fswap_gate(
                 It is also possible that the original vector is returned,
                 modified in-place.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     mat = np.eye(norb, dtype=complex)
     mat[np.ix_(target_orbs, target_orbs)] = [[0, 1], [1, 0]]
     if isinstance(nelec, int):

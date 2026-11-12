@@ -23,11 +23,27 @@ import numpy as np
 import scipy.sparse.linalg
 
 from ffsim import contract, gates, linalg, operators, protocols
+from ffsim._dtype import complex_state_dtype
 from ffsim.linalg.util import unitary_from_parameters, unitary_to_parameters
 from ffsim.variational.util import (
     validate_t2_antisymmetric,
     validate_t2_pair_symmetric,
 )
+
+
+def _apply_exp(
+    linop: scipy.sparse.linalg.LinearOperator, vec: np.ndarray
+) -> np.ndarray:
+    """Apply the exponential of a traceless linear operator to a state vector.
+
+    The linear operator is double precision, so the result is cast back to the
+    complex data type with the precision of the input vector. ``expm_multiply``
+    doesn't modify its input and always returns a newly allocated array, so the
+    input doesn't need to be copied first.
+    """
+    dtype = complex_state_dtype(vec.dtype)
+    result = scipy.sparse.linalg.expm_multiply(linop, vec, traceA=0.0)
+    return result.astype(dtype, copy=False)
 
 
 def uccsd_restricted_linear_operator(
@@ -356,13 +372,10 @@ class UCCSDOpRestrictedReal(
     ) -> np.ndarray:
         if isinstance(nelec, int):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
-
         linop = uccsd_restricted_linear_operator(
             self.t1, self.t2, norb=norb, nelec=nelec
         )
-        vec = scipy.sparse.linalg.expm_multiply(linop, vec, traceA=0.0)
+        vec = _apply_exp(linop, vec)
 
         if self.final_orbital_rotation is not None:
             vec = gates.apply_orbital_rotation(
@@ -585,13 +598,10 @@ class UCCSDOpRestricted(
     ) -> np.ndarray:
         if isinstance(nelec, int):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
-
         linop = uccsd_restricted_linear_operator(
             self.t1, self.t2, norb=norb, nelec=nelec
         )
-        vec = scipy.sparse.linalg.expm_multiply(linop, vec, traceA=0.0)
+        vec = _apply_exp(linop, vec)
 
         if self.final_orbital_rotation is not None:
             vec = gates.apply_orbital_rotation(
@@ -913,13 +923,10 @@ class UCCSDOpUnrestrictedReal(
     ) -> np.ndarray:
         if isinstance(nelec, int):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
-
         linop = uccsd_unrestricted_linear_operator(
             self.t1, self.t2, norb=norb, nelec=nelec
         )
-        vec = scipy.sparse.linalg.expm_multiply(linop, vec, traceA=0.0)
+        vec = _apply_exp(linop, vec)
 
         if self.final_orbital_rotation is not None:
             vec = gates.apply_orbital_rotation(
@@ -1245,13 +1252,10 @@ class UCCSDOpUnrestricted(
     ) -> np.ndarray:
         if isinstance(nelec, int):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
-
         linop = uccsd_unrestricted_linear_operator(
             self.t1, self.t2, norb=norb, nelec=nelec
         )
-        vec = scipy.sparse.linalg.expm_multiply(linop, vec, traceA=0.0)
+        vec = _apply_exp(linop, vec)
 
         if self.final_orbital_rotation is not None:
             vec = gates.apply_orbital_rotation(
@@ -1479,11 +1483,8 @@ class UCCSDOpSpinlessReal(
     ) -> np.ndarray:
         if isinstance(nelec, tuple):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
-
         linop = uccsd_spinless_linear_operator(self.t1, self.t2, norb=norb, nelec=nelec)
-        vec = scipy.sparse.linalg.expm_multiply(linop, vec, traceA=0.0)
+        vec = _apply_exp(linop, vec)
 
         if self.final_orbital_rotation is not None:
             vec = gates.apply_orbital_rotation(
@@ -1699,11 +1700,8 @@ class UCCSDOpSpinless(
     ) -> np.ndarray:
         if isinstance(nelec, tuple):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
-
         linop = uccsd_spinless_linear_operator(self.t1, self.t2, norb=norb, nelec=nelec)
-        vec = scipy.sparse.linalg.expm_multiply(linop, vec, traceA=0.0)
+        vec = _apply_exp(linop, vec)
 
         if self.final_orbital_rotation is not None:
             vec = gates.apply_orbital_rotation(

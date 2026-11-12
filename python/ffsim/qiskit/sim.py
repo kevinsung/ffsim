@@ -20,6 +20,7 @@ from typing import Sequence, cast
 
 import numpy as np
 import scipy.linalg
+from numpy.typing import DTypeLike
 from qiskit.circuit import CircuitInstruction, Gate, QuantumCircuit
 from qiskit.circuit.library import (
     Barrier,
@@ -55,6 +56,7 @@ from qiskit.circuit.library import (
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 
 from ffsim import gates, protocols, states, trotter, variational
+from ffsim._dtype import as_complex_state_vector
 from ffsim.qiskit.gates import (
     DiagCoulombEvolutionJW,
     DiagCoulombEvolutionSpinlessJW,
@@ -81,6 +83,8 @@ def final_state_vector(
     circuit: QuantumCircuit,
     norb: int | None = None,
     nelec: int | tuple[int, int] | None = None,
+    *,
+    dtype: DTypeLike = complex,
 ) -> states.StateVector:
     """Return the final state vector of a fermionic quantum circuit.
 
@@ -95,6 +99,11 @@ def final_state_vector(
             spinless system, or a pair of integers storing the numbers of spin alpha
             and spin beta fermions.
         circuit: The circuit composed of fermionic gates.
+        dtype: The data type of the state vector, either ``complex128`` (the
+            default) or ``complex64``. A real data type is promoted to the complex
+            data type of the same precision. With ``complex64``, the gates are
+            applied in single precision, which halves the memory used by the state
+            vector.
 
     Returns:
         The final state vector that results from applying the circuit to the vacuum
@@ -102,7 +111,9 @@ def final_state_vector(
     """
     if not circuit.data:
         raise ValueError("Circuit must contain at least one instruction.")
-    state_vector, remaining_circuit = _prepare_state_vector(circuit, norb, nelec)
+    state_vector, remaining_circuit = _prepare_state_vector(
+        circuit, norb, nelec, dtype=dtype
+    )
     if norb is not None and norb != state_vector.norb:
         raise ValueError(
             "norb did not match the circuit's state preparation. "
@@ -126,7 +137,11 @@ def final_state_vector(
 
 
 def _prepare_state_vector(
-    circuit: QuantumCircuit, norb: int | None, nelec: int | tuple[int, int] | None
+    circuit: QuantumCircuit,
+    norb: int | None,
+    nelec: int | tuple[int, int] | None,
+    *,
+    dtype: DTypeLike,
 ) -> tuple[states.StateVector, QuantumCircuit]:
     instruction = circuit.data[0]
     op = instruction.operation
@@ -150,7 +165,7 @@ def _prepare_state_vector(
         if isinstance(op, (PrepareHartreeFockJW, PrepareHartreeFockSpinlessJW)):
             norb = op.norb
             nelec = op.nelec
-            vec = states.hartree_fock_state(norb, nelec)
+            vec = states.hartree_fock_state(norb, nelec, dtype=dtype)
 
         if isinstance(op, PrepareSlaterDeterminantJW):
             norb = op.norb
@@ -160,13 +175,17 @@ def _prepare_state_vector(
                 norb,
                 occupied_orbitals=op.occupied_orbitals,
                 orbital_rotation=(op.orbital_rotation_a, op.orbital_rotation_b),
+                dtype=dtype,
             )
 
         if isinstance(op, PrepareSlaterDeterminantSpinlessJW):
             norb = op.norb
             nelec = len(op.occupied_orbitals)
             vec = states.slater_determinant(
-                op.norb, op.occupied_orbitals, orbital_rotation=op.orbital_rotation
+                op.norb,
+                op.occupied_orbitals,
+                orbital_rotation=op.orbital_rotation,
+                dtype=dtype,
             )
 
         remaining_circuit = QuantumCircuit.from_instructions(circuit.data[1:])
@@ -188,7 +207,7 @@ def _prepare_state_vector(
             # Spinless case
             norb = cast(int, circuit.num_qubits)
             nelec = len(qubit_indices)
-            vec = states.slater_determinant(norb, qubit_indices)
+            vec = states.slater_determinant(norb, qubit_indices, dtype=dtype)
         else:
             # Spinful case
             assert circuit.num_qubits % 2 == 0
@@ -196,7 +215,7 @@ def _prepare_state_vector(
             occ_a = [i for i in qubit_indices if i < norb]
             occ_b = [i - norb for i in qubit_indices if i >= norb]
             nelec = (len(occ_a), len(occ_b))
-            vec = states.slater_determinant(norb, (occ_a, occ_b))
+            vec = states.slater_determinant(norb, (occ_a, occ_b), dtype=dtype)
         return states.StateVector(vec=vec, norb=norb, nelec=nelec), remaining_circuit
 
 
@@ -1128,8 +1147,7 @@ def _apply_diagonal_gate(
     *,
     copy: bool = True,
 ) -> np.ndarray:
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     addresses = np.arange(len(vec))
     strings = states.addresses_to_strings(addresses, norb=norb, nelec=nelec)
     restricted = restrict_bitstrings(strings, qubit_indices, BitstringType.INT)
@@ -1147,8 +1165,7 @@ def _apply_swap_defect(
     *,
     copy: bool = True,
 ) -> np.ndarray:
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     i, j = target_orbs
     if abs(i - j) == 1:
         return vec
@@ -1183,8 +1200,7 @@ def _apply_swap(
     *,
     copy: bool = True,
 ) -> np.ndarray:
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     i, j = target_orbs
     vec = _apply_swap_defect(vec, (i, j), norb=norb, nelec=nelec, spin=spin, copy=False)
     vec = gates.apply_fswap_gate(
@@ -1206,8 +1222,7 @@ def _apply_iswap(
     *,
     copy: bool = True,
 ) -> np.ndarray:
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     i, j = target_orbs
     vec = _apply_swap_defect(vec, (i, j), norb=norb, nelec=nelec, spin=spin, copy=False)
     vec = gates.apply_givens_rotation(
@@ -1233,8 +1248,7 @@ def _apply_cswap(
     *,
     copy: bool = True,
 ) -> np.ndarray:
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     strings = states.addresses_to_strings(np.arange(len(vec)), norb=norb, nelec=nelec)
     strings = np.asarray(strings, dtype=int)
     i, j = target_orbs
@@ -1259,8 +1273,7 @@ def _apply_xx_plus_yy(
     *,
     copy: bool = True,
 ) -> np.ndarray:
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     i, j = target_orbs
     vec = _apply_swap_defect(vec, (i, j), norb=norb, nelec=nelec, spin=spin, copy=False)
     vec = gates.apply_givens_rotation(

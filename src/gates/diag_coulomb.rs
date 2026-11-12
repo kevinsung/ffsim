@@ -10,18 +10,19 @@
 // copyright notice, and modified files need to carry a notice indicating
 // that they have been altered from the originals.
 
-use ndarray::Array;
-use ndarray::Zip;
+use ndarray::{Array, Array1, Array2, ArrayView1, ArrayView2, ArrayViewMut2, Zip};
+use num_complex::Complex;
 use numpy::Complex64;
 use numpy::PyReadonlyArray1;
 use numpy::PyReadonlyArray2;
-use numpy::PyReadwriteArray2;
 use pyo3::prelude::*;
+
+use crate::dtype::{cast_complex, ComplexVecMut, Real};
 
 /// Apply time evolution by a diagonal Coulomb operator in-place.
 #[pyfunction]
 pub fn apply_diag_coulomb_evolution_in_place_num_rep(
-    mut vec: PyReadwriteArray2<Complex64>,
+    vec: ComplexVecMut,
     mat_exp_aa: PyReadonlyArray2<Complex64>,
     mat_exp_ab: PyReadonlyArray2<Complex64>,
     mat_exp_bb: PyReadonlyArray2<Complex64>,
@@ -32,13 +33,51 @@ pub fn apply_diag_coulomb_evolution_in_place_num_rep(
     let mat_exp_aa = mat_exp_aa.as_array();
     let mat_exp_ab = mat_exp_ab.as_array();
     let mat_exp_bb = mat_exp_bb.as_array();
-    let mut vec = vec.as_array_mut();
     let occupations_a = occupations_a.as_array();
     let occupations_b = occupations_b.as_array();
+    let (dim_a, dim_b) = vec.dim();
+    let (alpha_phases, beta_phases, phase_map) = num_rep_phases(
+        mat_exp_aa,
+        mat_exp_ab,
+        mat_exp_bb,
+        dim_a,
+        dim_b,
+        norb,
+        occupations_a,
+        occupations_b,
+    );
+    match vec {
+        ComplexVecMut::Complex128(mut vec) => apply_num_rep_phases(
+            vec.as_array_mut(),
+            &alpha_phases,
+            &beta_phases,
+            &phase_map,
+            occupations_b,
+        ),
+        ComplexVecMut::Complex64(mut vec) => apply_num_rep_phases(
+            vec.as_array_mut(),
+            &alpha_phases,
+            &beta_phases,
+            &phase_map,
+            occupations_b,
+        ),
+    }
+}
 
-    let shape = vec.shape();
-    let dim_a = shape[0];
-    let dim_b = shape[1];
+/// Compute the alpha phases, beta phases, and alpha-beta phase map in double
+/// precision.
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::type_complexity)]
+fn num_rep_phases(
+    mat_exp_aa: ArrayView2<Complex64>,
+    mat_exp_ab: ArrayView2<Complex64>,
+    mat_exp_bb: ArrayView2<Complex64>,
+    dim_a: usize,
+    dim_b: usize,
+    norb: usize,
+    occupations_a: ArrayView2<usize>,
+    occupations_b: ArrayView2<usize>,
+) -> (Array1<Complex64>, Array1<Complex64>, Array2<Complex64>) {
     let n_alpha = occupations_a.shape()[1];
     let n_beta = occupations_b.shape()[1];
 
@@ -76,17 +115,28 @@ pub fn apply_diag_coulomb_evolution_in_place_num_rep(
             *val = phase;
         });
 
+    (alpha_phases, beta_phases, phase_map)
+}
+
+fn apply_num_rep_phases<T: Real>(
+    mut vec: ArrayViewMut2<Complex<T>>,
+    alpha_phases: &Array1<Complex64>,
+    beta_phases: &Array1<Complex64>,
+    phase_map: &Array2<Complex64>,
+    occupations_b: ArrayView2<usize>,
+) {
     Zip::from(vec.rows_mut())
-        .and(&alpha_phases)
+        .and(alpha_phases)
         .and(phase_map.rows())
         .par_for_each(|row, alpha_phase, phase_map| {
             Zip::from(row)
-                .and(&beta_phases)
+                .and(beta_phases)
                 .and(occupations_b.rows())
                 .for_each(|val, beta_phase, orbs| {
+                    // The phase is accumulated in double precision and rounded once.
                     let mut phase = *alpha_phase * *beta_phase;
                     orbs.for_each(|&orb| phase *= phase_map[orb]);
-                    *val *= phase;
+                    *val *= cast_complex::<T>(phase);
                 })
         });
 }
@@ -95,7 +145,7 @@ pub fn apply_diag_coulomb_evolution_in_place_num_rep(
 #[allow(clippy::too_many_arguments)]
 #[pyfunction]
 pub fn apply_diag_coulomb_evolution_in_place_z_rep(
-    mut vec: PyReadwriteArray2<Complex64>,
+    vec: ComplexVecMut,
     mat_exp_aa: PyReadonlyArray2<Complex64>,
     mat_exp_ab: PyReadonlyArray2<Complex64>,
     mat_exp_bb: PyReadonlyArray2<Complex64>,
@@ -106,19 +156,60 @@ pub fn apply_diag_coulomb_evolution_in_place_z_rep(
     strings_a: PyReadonlyArray1<i64>,
     strings_b: PyReadonlyArray1<i64>,
 ) {
-    let mat_exp_aa = mat_exp_aa.as_array();
-    let mat_exp_ab = mat_exp_ab.as_array();
-    let mat_exp_bb = mat_exp_bb.as_array();
-    let mat_exp_aa_conj = mat_exp_aa_conj.as_array();
-    let mat_exp_ab_conj = mat_exp_ab_conj.as_array();
-    let mat_exp_bb_conj = mat_exp_bb_conj.as_array();
-    let mut vec = vec.as_array_mut();
     let strings_a = strings_a.as_array();
     let strings_b = strings_b.as_array();
+    let (dim_a, dim_b) = vec.dim();
+    let (alpha_phases, beta_phases, phase_map) = z_rep_phases(
+        [
+            mat_exp_aa.as_array(),
+            mat_exp_ab.as_array(),
+            mat_exp_bb.as_array(),
+        ],
+        [
+            mat_exp_aa_conj.as_array(),
+            mat_exp_ab_conj.as_array(),
+            mat_exp_bb_conj.as_array(),
+        ],
+        dim_a,
+        dim_b,
+        norb,
+        strings_a,
+        strings_b,
+    );
+    match vec {
+        ComplexVecMut::Complex128(mut vec) => apply_z_rep_phases(
+            vec.as_array_mut(),
+            &alpha_phases,
+            &beta_phases,
+            &phase_map,
+            norb,
+            strings_b,
+        ),
+        ComplexVecMut::Complex64(mut vec) => apply_z_rep_phases(
+            vec.as_array_mut(),
+            &alpha_phases,
+            &beta_phases,
+            &phase_map,
+            norb,
+            strings_b,
+        ),
+    }
+}
 
-    let shape = vec.shape();
-    let dim_a = shape[0];
-    let dim_b = shape[1];
+/// Compute the alpha phases, beta phases, and alpha-beta phase map in double
+/// precision.
+#[allow(clippy::type_complexity)]
+fn z_rep_phases(
+    mat_exps: [ArrayView2<Complex64>; 3],
+    mat_exps_conj: [ArrayView2<Complex64>; 3],
+    dim_a: usize,
+    dim_b: usize,
+    norb: usize,
+    strings_a: ArrayView1<i64>,
+    strings_b: ArrayView1<i64>,
+) -> (Array1<Complex64>, Array1<Complex64>, Array2<Complex64>) {
+    let [mat_exp_aa, mat_exp_ab, mat_exp_bb] = mat_exps;
+    let [mat_exp_aa_conj, mat_exp_ab_conj, mat_exp_bb_conj] = mat_exps_conj;
 
     let mut alpha_phases = Array::zeros(dim_a);
     let mut beta_phases = Array::zeros(dim_b);
@@ -169,14 +260,26 @@ pub fn apply_diag_coulomb_evolution_in_place_z_rep(
             *val = phase;
         });
 
+    (alpha_phases, beta_phases, phase_map)
+}
+
+fn apply_z_rep_phases<T: Real>(
+    mut vec: ArrayViewMut2<Complex<T>>,
+    alpha_phases: &Array1<Complex64>,
+    beta_phases: &Array1<Complex64>,
+    phase_map: &Array2<Complex64>,
+    norb: usize,
+    strings_b: ArrayView1<i64>,
+) {
     Zip::from(vec.rows_mut())
-        .and(&alpha_phases)
+        .and(alpha_phases)
         .and(phase_map.rows())
         .par_for_each(|row, alpha_phase, phase_map| {
             Zip::from(row)
-                .and(&beta_phases)
+                .and(beta_phases)
                 .and(strings_b)
                 .for_each(|val, beta_phase, str0| {
+                    // The phase is accumulated in double precision and rounded once.
                     let mut phase = *alpha_phase * *beta_phase;
                     for j in 0..norb {
                         let this_phase = if (str0 >> j) & 1 == 1 {
@@ -186,7 +289,7 @@ pub fn apply_diag_coulomb_evolution_in_place_z_rep(
                         };
                         phase *= this_phase
                     }
-                    *val *= phase;
+                    *val *= cast_complex::<T>(phase);
                 })
         });
 }

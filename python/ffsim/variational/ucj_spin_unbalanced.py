@@ -23,6 +23,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from ffsim import gates, linalg, protocols
+from ffsim._dtype import as_complex_state_vector
 from ffsim.linalg.util import (
     all_indices,
     mask_from_indices,
@@ -684,8 +685,7 @@ class UCJOpSpinUnbalanced(
     ) -> np.ndarray:
         if isinstance(nelec, int):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
+        vec = as_complex_state_vector(vec, copy=copy)
         eye = np.eye(norb)
         current_basis = np.stack([eye, eye])
         for diag_coulomb_mat, orbital_rotation in zip(

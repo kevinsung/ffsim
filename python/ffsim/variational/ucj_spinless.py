@@ -22,6 +22,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from ffsim import gates, linalg, protocols
+from ffsim._dtype import as_complex_state_vector
 from ffsim.linalg.util import (
     mask_from_indices,
     real_symmetric_from_parameters_jax,
@@ -480,8 +481,7 @@ class UCJOpSpinless(
     def _apply_unitary_(
         self, vec: np.ndarray, norb: int, nelec: int | tuple[int, int], copy: bool
     ) -> np.ndarray:
-        if copy:
-            vec = vec.copy()
+        vec = as_complex_state_vector(vec, copy=copy)
         current_basis = np.eye(norb)
         if isinstance(nelec, int):
             for diag_coulomb_mat, orbital_rotation in zip(

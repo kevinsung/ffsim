@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import itertools
+import tracemalloc
 from typing import cast
 
 import numpy as np
@@ -425,3 +426,46 @@ def test_slater_determinant_amplitudes_sign_spinless():
 
     amps = ffsim.slater_determinant_amplitudes([0b00001111], 8, [0, 1, 3, 2], np.eye(8))
     assert amps[0] == -1
+
+
+def test_state_constructors_dtype():
+    """State constructors return the requested dtype."""
+    norb, nelec = 5, (3, 2)
+    mat = ffsim.random.random_unitary(norb, seed=RNG)
+    occ = ([0, 2, 1], [1, 3])
+    for dtype, atol in [(np.complex128, 1e-12), (np.complex64, 1e-6)]:
+        vec = ffsim.hartree_fock_state(norb, nelec, dtype=dtype)
+        assert vec.dtype == dtype
+        np.testing.assert_allclose(vec, ffsim.hartree_fock_state(norb, nelec))
+
+        assert ffsim.hartree_fock_state(norb, 2, dtype=dtype).dtype == dtype
+
+        vec = ffsim.slater_determinant(norb, occ, orbital_rotation=mat, dtype=dtype)
+        expected = ffsim.slater_determinant(norb, occ, orbital_rotation=mat)
+        assert vec.dtype == dtype
+        np.testing.assert_allclose(vec, expected, atol=atol)
+
+        assert ffsim.slater_determinant(0, ([], []), dtype=dtype).dtype == dtype
+
+        # Unsorted occupations without an orbital rotation exercise the sign
+        vec = ffsim.slater_determinant(norb, occ, dtype=dtype)
+        assert vec.dtype == dtype
+        np.testing.assert_array_equal(vec, ffsim.slater_determinant(norb, occ))
+
+    # Real dtypes are promoted to complex
+    assert ffsim.hartree_fock_state(norb, nelec, dtype=np.float32).dtype == (
+        np.complex64
+    )
+    assert ffsim.hartree_fock_state(norb, nelec, dtype=float).dtype == np.complex128
+
+
+def test_hartree_fock_state_single_precision_memory():
+    """A single-precision Hartree-Fock state is built without a double copy."""
+    norb, nelec = 10, (5, 5)
+    tracemalloc.start()
+    try:
+        vec = ffsim.hartree_fock_state(norb, nelec, dtype=np.complex64)
+        _, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    assert peak < 1.5 * vec.nbytes

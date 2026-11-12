@@ -19,6 +19,7 @@ import cmath
 import numpy as np
 import scipy.linalg
 
+from ffsim._dtype import as_complex_state_vector
 from ffsim.gates import apply_diag_coulomb_evolution, apply_orbital_rotation
 from ffsim.hamiltonians import DoubleFactorizedHamiltonian
 from ffsim.trotter._util import simulate_trotter_step_iterator
@@ -38,7 +39,9 @@ def simulate_trotter_double_factorized(
     """Double-factorized Hamiltonian simulation using Trotter-Suzuki formula.
 
     Args:
-        vec: The state vector to evolve.
+        vec: The state vector to evolve. A ``complex64`` or ``complex128`` vector
+            keeps its data type, and a real vector is promoted to the complex data
+            type of the same precision. See :doc:`/explanations/precision`.
         hamiltonian: The Hamiltonian.
         time: The evolution time.
         norb: The number of spatial orbitals.
@@ -61,8 +64,7 @@ def simulate_trotter_double_factorized(
         raise ValueError(f"order must be non-negative, got {order}.")
     if n_steps < 0:
         raise ValueError(f"n_steps must be non-negative, got {n_steps}.")
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     if n_steps == 0:
         return vec
 

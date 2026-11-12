@@ -24,6 +24,7 @@ import numpy as np
 import pyscf.ci
 
 from ffsim import gates, linalg, protocols
+from ffsim._dtype import as_complex_state_vector
 from ffsim.linalg.util import (
     mask_from_indices,
     real_symmetric_from_parameters_jax,
@@ -667,8 +668,7 @@ class UCJOpSpinBalanced(
     ) -> np.ndarray:
         if isinstance(nelec, int):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
+        vec = as_complex_state_vector(vec, copy=copy)
         current_basis = np.eye(norb)
         for (diag_coulomb_mat_aa, diag_coulomb_mat_ab), orbital_rotation in zip(
             self.diag_coulomb_mats, self.orbital_rotations

@@ -20,6 +20,7 @@ import numpy as np
 import scipy.sparse.linalg
 
 from ffsim._cistring import gen_occslst
+from ffsim._dtype import as_double_precision
 from ffsim._lib import (
     contract_num_op_sum_spin_into_buffer,
 )
@@ -51,6 +52,7 @@ def contract_num_op_sum(
         state vector.
     """
     vec = vec.astype(complex, copy=False)
+    coeffs = as_double_precision(coeffs)
     n_alpha, n_beta = nelec
 
     occupations_a = gen_occslst(range(norb), n_alpha)
@@ -111,12 +113,16 @@ def num_op_sum_linop(
     def matvec(vec):
         these_coeffs = coeffs
         if orbital_rotation is not None:
+            # astype always copies, so the in-place rotation can't modify the input
             vec = apply_orbital_rotation(
-                vec,
+                vec.astype(np.complex128),
                 orbital_rotation.T.conj(),
                 norb,
                 nelec,
+                copy=False,
             )
+        else:
+            vec = as_double_precision(vec)
         vec = contract_num_op_sum(vec, these_coeffs, norb=norb, nelec=nelec)
         if orbital_rotation is not None:
             vec = apply_orbital_rotation(

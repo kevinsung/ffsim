@@ -19,6 +19,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from ffsim import gates, protocols
+from ffsim._dtype import as_complex_state_vector
 from ffsim.linalg.util import rows_and_cols, upper_triangular_indices
 from ffsim.variational.givens import GivensAnsatzOp
 from ffsim.variational.num_num import NumNumAnsatzOpSpinBalanced
@@ -553,8 +554,7 @@ class UCJAnglesOpSpinBalanced(
     ) -> np.ndarray:
         if isinstance(nelec, int):
             return NotImplemented
-        if copy:
-            vec = vec.copy()
+        vec = as_complex_state_vector(vec, copy=copy)
         current_basis = np.eye(norb)
         for num_num_ansatz_op, givens_ansatz_op in zip(
             self.num_num_ansatz_ops, self.givens_ansatz_ops

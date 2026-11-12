@@ -17,6 +17,7 @@ import itertools
 import numpy as np
 import scipy.linalg
 
+from ffsim._dtype import as_complex_state_vector
 from ffsim.gates import apply_diag_coulomb_evolution, apply_num_op_sum_evolution
 from ffsim.hamiltonians import DoubleFactorizedHamiltonian
 from ffsim.states.wick import expectation_one_body_power, expectation_one_body_product
@@ -39,7 +40,9 @@ def simulate_qdrift_double_factorized(
     """Double-factorized Hamiltonian simulation via qDRIFT.
 
     Args:
-        vec: The state vector to evolve.
+        vec: The state vector to evolve. A ``complex64`` or ``complex128`` vector
+            keeps its data type, and a real vector is promoted to the complex data
+            type of the same precision. See :doc:`/explanations/precision`.
         hamiltonian: The Hamiltonian.
         time: The evolution time.
         nelec: The number of alpha and beta electrons.
@@ -71,11 +74,13 @@ def simulate_qdrift_double_factorized(
     if n_samples < 1:
         raise ValueError(f"n_samples must be positive, got {n_samples}.")
 
-    initial_state = vec.copy()
+    # Not copied here because it is never modified: each trajectory starts from
+    # its own copy
+    initial_state = as_complex_state_vector(vec, copy=False)
 
     if n_steps == 0 or time == 0:
         if n_samples == 1:
-            return initial_state
+            return initial_state.copy()
         return np.tile(initial_state, (n_samples, 1))
 
     if isinstance(probabilities, str):
@@ -93,7 +98,10 @@ def simulate_qdrift_double_factorized(
     )
     step_time = time / n_steps
 
-    results = np.empty((n_samples, initial_state.shape[0]), dtype=complex)
+    results = np.empty(
+        (n_samples, initial_state.shape[0]),
+        dtype=initial_state.dtype,
+    )
     for i in range(n_samples):
         # TODO cache trajectories
         vec = initial_state.copy()

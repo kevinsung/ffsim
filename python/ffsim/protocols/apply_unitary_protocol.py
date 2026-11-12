@@ -57,7 +57,10 @@ def apply_unitary(
     """Apply a unitary transformation to a vector.
 
     Args:
-        vec: The vector to apply the unitary transformation to.
+        vec: The vector to apply the unitary transformation to. A ``complex64`` or
+            ``complex128`` vector keeps its data type, and a real vector is promoted
+            to the complex data type of the same precision.
+            See :doc:`/explanations/precision`.
         obj: The object with a unitary effect.
         norb: The number of spatial orbitals.
         nelec: Either a single integer representing the number of fermions for a

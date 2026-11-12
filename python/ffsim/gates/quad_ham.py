@@ -19,6 +19,7 @@ from typing import cast, overload
 import numpy as np
 import scipy.linalg
 
+from ffsim._dtype import as_complex_state_vector
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
 
 
@@ -63,7 +64,9 @@ def apply_quad_ham_evolution(
     where each :math:`\mathbf{M}^{(\sigma)}` is a Hermitian matrix.
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         mat: The matrix :math:`\mathbf{M}` describing the quadratic Hamiltonian.
             You can pass either a single Numpy array specifying the Hamiltonian
             to use for both spin sectors, or you can pass a pair of Numpy arrays
@@ -87,8 +90,7 @@ def apply_quad_ham_evolution(
     Returns:
         The evolved state vector.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
 
     if isinstance(nelec, int) or (isinstance(mat, np.ndarray) and mat.ndim == 2):
         # Spinless, or spinful with same matrix for each spin sector

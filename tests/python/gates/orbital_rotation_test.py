@@ -23,6 +23,7 @@ import scipy.linalg
 import scipy.sparse.linalg
 
 import ffsim
+from ffsim._lib import apply_givens_rotation_in_place
 from ffsim.states import slater_determinant
 
 RNG = np.random.default_rng(125518952074177759733155483194098165391)
@@ -250,3 +251,33 @@ def test_apply_orbital_rotation_large_spinful_regression():
 
     result = ffsim.apply_orbital_rotation(vec, (mat_a, mat_b), norb, nelec)
     np.testing.assert_allclose(np.linalg.norm(result), 1.0)
+
+
+@pytest.mark.skipif(
+    np.dtype(np.clongdouble) == np.complex128,
+    reason="clongdouble is complex128 on this platform",
+)
+def test_unsupported_dtype_raises():
+    """Extended-precision state vectors raise a clear error."""
+    norb, nelec = 5, (3, 2)
+    vec = ffsim.hartree_fock_state(norb, nelec).astype(np.clongdouble)
+    mat = ffsim.random.random_unitary(norb, seed=RNG)
+    with pytest.raises(TypeError, match="Unsupported state vector dtype"):
+        ffsim.apply_orbital_rotation(vec, mat, norb, nelec)
+
+
+def test_givens_rotation_kernel_checks():
+    """The Rust Givens rotation kernel validates its inputs."""
+    vec = np.zeros((4, 6), dtype=complex)
+    slice1 = np.array([0, 1], dtype=np.uintp)
+    slice2 = np.array([2, 3], dtype=np.uintp)
+    with pytest.raises(ValueError, match="C-contiguous"):
+        apply_givens_rotation_in_place(vec[:, ::2], 0.5, 0.5 + 0.5j, slice1, slice2)
+    with pytest.raises(ValueError, match="out of bounds"):
+        apply_givens_rotation_in_place(
+            vec, 0.5, 0.5 + 0.5j, slice1, np.array([2, 4], dtype=np.uintp)
+        )
+    with pytest.raises(ValueError, match="same length"):
+        apply_givens_rotation_in_place(
+            vec, 0.5, 0.5 + 0.5j, slice1, np.array([2], dtype=np.uintp)
+        )

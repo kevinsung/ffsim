@@ -281,3 +281,40 @@ def test_diag_coulomb_to_linop():
     )
 
     np.testing.assert_allclose(result, expected)
+
+
+def test_contract_diag_coulomb_integer_matrix():
+    """contract_diag_coulomb accepts integer matrices."""
+    norb, nelec = 4, (2, 2)
+    vec = ffsim.random.random_state_vector(ffsim.dim(norb, nelec), seed=RNG)
+    mat = RNG.integers(-3, 4, size=(norb, norb))
+    mat = mat + mat.T
+    for z_representation in [False, True]:
+        for int_mat, float_mat in [
+            (mat, mat.astype(float)),
+            ((mat, None, mat), (mat.astype(float), None, mat.astype(float))),
+        ]:
+            result = ffsim.contract.contract_diag_coulomb(
+                vec,
+                int_mat,
+                norb=norb,
+                nelec=nelec,
+                z_representation=z_representation,
+            )
+            expected = ffsim.contract.contract_diag_coulomb(
+                vec,
+                float_mat,
+                norb=norb,
+                nelec=nelec,
+                z_representation=z_representation,
+            )
+            np.testing.assert_allclose(result, expected)
+
+
+def test_contract_diag_coulomb_rejects_complex_coefficients():
+    """contract_diag_coulomb rejects complex coefficients instead of truncating them."""
+    norb, nelec = 4, (2, 2)
+    vec = ffsim.random.random_state_vector(ffsim.dim(norb, nelec), seed=RNG)
+    mat = ffsim.random.random_real_symmetric_matrix(norb, seed=RNG) * (1 + 1j)
+    with pytest.raises(TypeError):
+        ffsim.contract.contract_diag_coulomb(vec, mat, norb=norb, nelec=nelec)

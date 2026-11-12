@@ -21,6 +21,7 @@ from typing import cast, overload
 import numpy as np
 from pyscf.fci import cistring
 
+from ffsim._dtype import as_complex_state_vector
 from ffsim._lib import apply_givens_rotation_in_place, apply_phase_shift_in_place
 from ffsim.linalg import givens_decomposition
 
@@ -70,7 +71,9 @@ def apply_orbital_rotation(
         \log(U^{(\sigma)})_{ij} a^\dagger_{i\sigma} a_{j\sigma}\right)
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         mat: The unitary matrix :math:`U` describing the orbital rotation.
             You can pass either a single Numpy array specifying the orbital rotation
             to apply to both spin sectors, or you can pass a pair of Numpy arrays
@@ -94,8 +97,7 @@ def apply_orbital_rotation(
     Returns:
         The rotated vector.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     if isinstance(nelec, int):
         return _apply_orbital_rotation_spinless(vec, cast(np.ndarray, mat), norb, nelec)
     return _apply_orbital_rotation_spinful(vec, mat, norb, nelec)

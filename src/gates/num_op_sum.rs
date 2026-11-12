@@ -10,29 +10,46 @@
 // copyright notice, and modified files need to carry a notice indicating
 // that they have been altered from the originals.
 
-use ndarray::Zip;
+use ndarray::{ArrayView1, ArrayView2, ArrayViewMut2, Zip};
+use num_complex::Complex;
 use numpy::Complex64;
 use numpy::PyReadonlyArray1;
 use numpy::PyReadonlyArray2;
-use numpy::PyReadwriteArray2;
 use pyo3::prelude::*;
+
+use crate::dtype::{cast_complex, ComplexVecMut, Real};
 
 /// Apply time evolution by a sum of number operators in-place.
 #[pyfunction]
 pub fn apply_num_op_sum_evolution_in_place(
-    mut vec: PyReadwriteArray2<Complex64>,
+    vec: ComplexVecMut,
     phases: PyReadonlyArray1<Complex64>,
     occupations: PyReadonlyArray2<usize>,
 ) {
     let phases = phases.as_array();
-    let mut vec = vec.as_array_mut();
     let occupations = occupations.as_array();
+    match vec {
+        ComplexVecMut::Complex128(mut vec) => {
+            apply_num_op_sum_evolution(vec.as_array_mut(), phases, occupations)
+        }
+        ComplexVecMut::Complex64(mut vec) => {
+            apply_num_op_sum_evolution(vec.as_array_mut(), phases, occupations)
+        }
+    }
+}
 
+fn apply_num_op_sum_evolution<T: Real>(
+    mut vec: ArrayViewMut2<Complex<T>>,
+    phases: ArrayView1<Complex64>,
+    occupations: ArrayView2<usize>,
+) {
     Zip::from(vec.rows_mut())
         .and(occupations.rows())
         .par_for_each(|mut row, orbs| {
+            // The phase is accumulated in double precision and rounded once.
             let mut phase = Complex64::new(1.0, 0.0);
             orbs.for_each(|&orb| phase *= phases[orb]);
-            row *= phase;
+            let phase = cast_complex::<T>(phase);
+            row.map_inplace(|val| *val *= phase);
         });
 }

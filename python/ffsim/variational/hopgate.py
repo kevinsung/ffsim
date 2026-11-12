@@ -21,6 +21,7 @@ from typing import cast
 import numpy as np
 
 from ffsim import protocols
+from ffsim._dtype import as_complex_state_vector
 from ffsim.gates import apply_hop_gate, apply_orbital_rotation
 from ffsim.linalg.util import unitary_from_parameters, unitary_to_parameters
 
@@ -58,8 +59,7 @@ class HopGateAnsatzOperator(
         self, vec: np.ndarray, norb: int, nelec: int | tuple[int, int], copy: bool
     ) -> np.ndarray:
         """Apply the operator to a vector."""
-        if copy:
-            vec = vec.copy()
+        vec = as_complex_state_vector(vec, copy=copy)
         for target_orbs, theta in zip(
             itertools.cycle(self.interaction_pairs), self.thetas
         ):

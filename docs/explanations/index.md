@@ -13,5 +13,6 @@ lucj
 fermionic-fft
 fermion-operator
 protocols
+precision
 qubit-gate-decompositions
 ```

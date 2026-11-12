@@ -20,6 +20,7 @@ import numpy as np
 import scipy.sparse.linalg
 
 from ffsim._cistring import gen_occslst, make_strings
+from ffsim._dtype import as_double_precision
 from ffsim._lib import (
     contract_diag_coulomb_into_buffer_num_rep,
     contract_diag_coulomb_into_buffer_z_rep,
@@ -110,13 +111,16 @@ def _get_mats(
     mat_ab: np.ndarray | None
     mat_bb: np.ndarray | None
     if isinstance(mat, np.ndarray):
+        mat = as_double_precision(mat)
         mat_aa, mat_ab = mat, mat
         if not z_representation:
             mat_aa = mat_aa.copy()
             mat_aa[np.diag_indices(norb)] *= 0.5
         return mat_aa, mat_ab, mat_aa
     else:
-        mat_aa, mat_ab, mat_bb = mat
+        mat_aa, mat_ab, mat_bb = (
+            None if m is None else as_double_precision(m) for m in mat
+        )
         if mat_aa is None:
             mat_aa = np.zeros((norb, norb))
         elif not z_representation:
@@ -246,12 +250,16 @@ def diag_coulomb_linop(
 
     def matvec(vec):
         if orbital_rotation is not None:
+            # astype always copies, so the in-place rotation can't modify the input
             vec = apply_orbital_rotation(
-                vec,
+                vec.astype(np.complex128),
                 _conjugate_orbital_rotation(orbital_rotation),
                 norb,
                 nelec,
+                copy=False,
             )
+        else:
+            vec = as_double_precision(vec)
         vec = contract_diag_coulomb(
             vec,
             mat,

@@ -13,11 +13,13 @@
 use std::borrow::Cow;
 
 use ndarray::{ArrayView1, ArrayViewMut2};
+use num_complex::Complex;
 use numpy::Complex64;
 use numpy::PyReadonlyArray1;
-use numpy::PyReadwriteArray2;
 use pyo3::prelude::*;
 use rayon::prelude::*;
+
+use crate::dtype::{cast_complex, ComplexVecMut, Real};
 
 /// Minimum number of modified matrix entries for the phase shift to run in
 /// parallel. Below this, the fixed cost of dispatching to the thread pool
@@ -39,13 +41,11 @@ const BLOCKS_PER_THREAD: usize = 16;
 #[pyfunction]
 #[pyo3(signature = (vec, phase, row_indices=None, col_indices=None))]
 pub fn apply_phase_shift_in_place(
-    mut vec: PyReadwriteArray2<Complex64>,
+    vec: ComplexVecMut,
     phase: Complex64,
     row_indices: Option<PyReadonlyArray1<usize>>,
     col_indices: Option<PyReadonlyArray1<usize>>,
 ) {
-    let mut vec = vec.as_array_mut();
-    let (n_rows, n_cols) = vec.dim();
     let row_indices = row_indices
         .as_ref()
         .map(|indices| to_slice(indices.as_array()));
@@ -54,6 +54,24 @@ pub fn apply_phase_shift_in_place(
         .map(|indices| to_slice(indices.as_array()));
     let row_indices = row_indices.as_deref();
     let col_indices = col_indices.as_deref();
+    match vec {
+        ComplexVecMut::Complex128(mut vec) => {
+            apply_phase_shift(vec.as_array_mut(), phase, row_indices, col_indices)
+        }
+        ComplexVecMut::Complex64(mut vec) => {
+            apply_phase_shift(vec.as_array_mut(), phase, row_indices, col_indices)
+        }
+    }
+}
+
+fn apply_phase_shift<T: Real>(
+    mut vec: ArrayViewMut2<Complex<T>>,
+    phase: Complex64,
+    row_indices: Option<&[usize]>,
+    col_indices: Option<&[usize]>,
+) {
+    let phase = cast_complex::<T>(phase);
+    let (n_rows, n_cols) = vec.dim();
 
     let Some(data) = vec.as_slice_mut() else {
         // Not C-contiguous, so rows can't be taken as slices of the buffer
@@ -102,11 +120,11 @@ fn use_parallel(
 ///
 /// Generic over the row iterator so that all rows and selected rows share one
 /// implementation without dynamic dispatch.
-fn scale_rows_strided(
-    vec: &mut ArrayViewMut2<Complex64>,
+fn scale_rows_strided<T: Real>(
+    vec: &mut ArrayViewMut2<Complex<T>>,
     rows: impl Iterator<Item = usize>,
     col_indices: Option<&[usize]>,
-    phase: Complex64,
+    phase: Complex<T>,
 ) {
     for i in rows {
         let mut row = vec.row_mut(i);
@@ -120,15 +138,15 @@ fn scale_rows_strided(
 /// Apply ``scale_row`` to the selected rows of a C-contiguous matrix.
 ///
 /// Generic over the row operation so that it is specialized for each caller.
-fn scale_rows<F>(
-    data: &mut [Complex64],
+fn scale_rows<T: Real, F>(
+    data: &mut [Complex<T>],
     n_rows: usize,
     n_cols: usize,
     row_indices: Option<&[usize]>,
     parallel: bool,
     scale_row: F,
 ) where
-    F: Fn(&mut [Complex64]) + Sync,
+    F: Fn(&mut [Complex<T>]) + Sync,
 {
     if !parallel {
         match row_indices {

@@ -21,6 +21,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ffsim._cistring import gen_occslst, make_strings
+from ffsim._dtype import as_complex_state_vector, as_double_precision
 from ffsim._lib import (
     apply_diag_coulomb_evolution_in_place_num_rep,
     apply_diag_coulomb_evolution_in_place_z_rep,
@@ -96,7 +97,9 @@ def apply_diag_coulomb_evolution(
     and :math:`\mathcal{U}` is an optional orbital rotation.
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         mat: The diagonal Coulomb matrix :math:`J`.
             You can pass either a single Numpy array specifying the coefficients
             to use for all spin interactions, or you can pass a tuple of three Numpy
@@ -130,8 +133,7 @@ def apply_diag_coulomb_evolution(
     Returns:
         The evolved state vector.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     if isinstance(nelec, int):
         if z_representation:
             raise NotImplementedError
@@ -241,11 +243,12 @@ def _get_mat_exp(
     mat_ab: NDArray[np.floating] | None
     mat_bb: NDArray[np.floating] | None
     if isinstance(mat, np.ndarray) and mat.ndim == 2:
-        mat_aa, mat_ab = mat.copy(), mat.copy()
+        mat_aa = as_double_precision(mat, copy=True)
         mat_aa[np.diag_indices(norb)] *= 0.5
+        mat_ab = as_double_precision(mat)
         if z_representation:
             mat_aa *= 0.25
-            mat_ab *= 0.25
+            mat_ab = mat_ab * 0.25
         mat_exp_aa = np.exp(-1j * time * mat_aa)
         mat_exp_ab = np.exp(-1j * time * mat_ab)
         return mat_exp_aa, mat_exp_ab, mat_exp_aa
@@ -254,7 +257,7 @@ def _get_mat_exp(
         if mat_aa is None:
             mat_exp_aa = np.ones((norb, norb), dtype=complex)
         else:
-            mat_aa = mat_aa.copy()
+            mat_aa = as_double_precision(mat_aa, copy=True)
             mat_aa[np.diag_indices(norb)] *= 0.5
             if z_representation:
                 mat_aa *= 0.25
@@ -262,7 +265,7 @@ def _get_mat_exp(
         if mat_bb is None:
             mat_exp_bb = np.ones((norb, norb), dtype=complex)
         else:
-            mat_bb = mat_bb.copy()
+            mat_bb = as_double_precision(mat_bb, copy=True)
             mat_bb[np.diag_indices(norb)] *= 0.5
             if z_representation:
                 mat_bb *= 0.25
@@ -270,8 +273,8 @@ def _get_mat_exp(
         if mat_ab is None:
             mat_exp_ab = np.ones((norb, norb), dtype=complex)
         else:
+            mat_ab = as_double_precision(mat_ab)
             if z_representation:
-                mat_ab = mat_ab.copy()
-                mat_ab *= 0.25
+                mat_ab = mat_ab * 0.25
             mat_exp_ab = np.exp(-1j * time * mat_ab)
         return mat_exp_aa, mat_exp_ab, mat_exp_bb

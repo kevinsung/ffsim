@@ -20,6 +20,7 @@ from typing import cast, overload
 import numpy as np
 
 from ffsim._cistring import gen_occslst
+from ffsim._dtype import as_complex_state_vector, as_double_precision
 from ffsim._lib import apply_num_op_sum_evolution_in_place
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
 
@@ -89,7 +90,9 @@ def apply_num_op_sum_evolution(
     :math:`\mathcal{U}` is an optional orbital rotation.
 
     Args:
-        vec: The state vector to be transformed.
+        vec: The state vector to be transformed. A ``complex64`` or ``complex128``
+            vector keeps its data type, and a real vector is promoted to the complex
+            data type of the same precision. See :doc:`/explanations/precision`.
         coeffs: The coefficients of the linear combination.
             You can pass either a single Numpy array specifying the coefficients
             to apply to both spin sectors, or you can pass a pair of Numpy arrays
@@ -121,8 +124,7 @@ def apply_num_op_sum_evolution(
     Returns:
         The evolved state vector.
     """
-    if copy:
-        vec = vec.copy()
+    vec = as_complex_state_vector(vec, copy=copy)
     if isinstance(nelec, int):
         return _apply_num_op_sum_evolution_spinless(
             vec=vec,
@@ -150,7 +152,7 @@ def _apply_num_op_sum_evolution_spinless(
     nelec: int,
     orbital_rotation: np.ndarray | None,
 ) -> np.ndarray:
-    phases = np.exp(-1j * time * coeffs)
+    phases = np.exp(-1j * time * as_double_precision(coeffs))
     occupations = gen_occslst(range(norb), nelec)
     if orbital_rotation is not None:
         vec = apply_orbital_rotation(
@@ -225,14 +227,14 @@ def _get_phases(
     coeffs: np.ndarray | tuple[np.ndarray | None, np.ndarray | None], time: float
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
     if isinstance(coeffs, np.ndarray):
-        phases = np.exp(-1j * time * coeffs)
+        phases = np.exp(-1j * time * as_double_precision(coeffs))
         return phases, phases
     else:
         coeffs_a, coeffs_b = coeffs
         phases_a = None
         phases_b = None
         if coeffs_a is not None:
-            phases_a = np.exp(-1j * time * coeffs_a)
+            phases_a = np.exp(-1j * time * as_double_precision(coeffs_a))
         if coeffs_b is not None:
-            phases_b = np.exp(-1j * time * coeffs_b)
+            phases_b = np.exp(-1j * time * as_double_precision(coeffs_b))
         return phases_a, phases_b
