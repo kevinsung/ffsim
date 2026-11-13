@@ -107,3 +107,63 @@ def test_apply_quad_ham_evolution_spinful_asymm(norb: int, nelec: tuple[int, int
         vec, (None, eigs_b), time, norb, nelec, orbital_rotation=(None, vecs_b)
     )
     np.testing.assert_allclose(result, expected)
+
+
+@pytest.mark.parametrize(
+    "matrix_dtype, double_dtype",
+    [(np.float32, np.float64), (np.complex64, np.complex128)],
+)
+@pytest.mark.parametrize("state_dtype", [np.complex64, np.complex128])
+@pytest.mark.parametrize("nelec", [2, (2, 1)])
+def test_single_precision_parameters(matrix_dtype, double_dtype, state_dtype, nelec):
+    """Hamiltonian parameters are processed in double precision."""
+    norb = 4
+    mat = ffsim.random.random_hermitian(norb, seed=RNG)
+    if matrix_dtype == np.float32:
+        mat = mat.real
+    mat = mat.astype(matrix_dtype)
+    vec = ffsim.random.random_state_vector(
+        ffsim.dim(norb, nelec), seed=RNG, dtype=state_dtype
+    )
+
+    result = ffsim.apply_quad_ham_evolution(vec, mat, 100.0, norb, nelec)
+    expected = ffsim.apply_quad_ham_evolution(
+        vec, mat.astype(double_dtype), 100.0, norb, nelec
+    )
+
+    assert result.dtype == state_dtype
+    np.testing.assert_allclose(result, expected, rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize(
+    "matrix_dtype, double_dtype",
+    [(np.float32, np.float64), (np.complex64, np.complex128)],
+)
+@pytest.mark.parametrize("state_dtype", [np.complex64, np.complex128])
+@pytest.mark.parametrize(
+    "apply_alpha, apply_beta", [(True, True), (True, False), (False, True)]
+)
+def test_single_precision_parameters_spinful(
+    matrix_dtype, double_dtype, state_dtype, apply_alpha, apply_beta
+):
+    """Independent spin-sector parameters are processed in double precision."""
+    norb, nelec = 4, (2, 1)
+    mat_a = ffsim.random.random_hermitian(norb, seed=RNG)
+    mat_b = ffsim.random.random_hermitian(norb, seed=RNG)
+    if matrix_dtype == np.float32:
+        mat_a, mat_b = mat_a.real, mat_b.real
+    mat_a, mat_b = mat_a.astype(matrix_dtype), mat_b.astype(matrix_dtype)
+    mat = (mat_a if apply_alpha else None, mat_b if apply_beta else None)
+    double_mat = (
+        mat_a.astype(double_dtype) if apply_alpha else None,
+        mat_b.astype(double_dtype) if apply_beta else None,
+    )
+    vec = ffsim.random.random_state_vector(
+        ffsim.dim(norb, nelec), seed=RNG, dtype=state_dtype
+    )
+
+    result = ffsim.apply_quad_ham_evolution(vec, mat, 100.0, norb, nelec)
+    expected = ffsim.apply_quad_ham_evolution(vec, double_mat, 100.0, norb, nelec)
+
+    assert result.dtype == state_dtype
+    np.testing.assert_allclose(result, expected, rtol=0, atol=1e-12)

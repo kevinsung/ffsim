@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import numpy as np
 import pytest
 import scipy.sparse.linalg
@@ -140,3 +142,39 @@ def test_hubbard():
     # check agreement
     np.testing.assert_allclose(np.linalg.norm(final_state), 1.0)
     np.testing.assert_allclose(final_state, exact_state, atol=atol)
+
+
+@pytest.mark.parametrize(
+    "matrix_dtype, double_dtype",
+    [(np.float32, np.float64), (np.complex64, np.complex128)],
+)
+@pytest.mark.parametrize("state_dtype", [np.complex64, np.complex128])
+def test_single_precision_parameters(matrix_dtype, double_dtype, state_dtype):
+    """Simulation agrees with explicitly promoted Hamiltonian parameters."""
+    norb, nelec = 4, (2, 1)
+    ham = ffsim.random.random_diagonal_coulomb_hamiltonian(
+        norb, real=matrix_dtype == np.float32, seed=RNG
+    )
+    ham = replace(
+        ham,
+        one_body_tensor=ham.one_body_tensor.astype(matrix_dtype),
+        diag_coulomb_mats=ham.diag_coulomb_mats.astype(np.float32),
+    )
+    double_ham = replace(
+        ham,
+        one_body_tensor=ham.one_body_tensor.astype(double_dtype),
+        diag_coulomb_mats=ham.diag_coulomb_mats.astype(np.float64),
+    )
+    vec = ffsim.random.random_state_vector(
+        ffsim.dim(norb, nelec), seed=RNG, dtype=state_dtype
+    )
+
+    result = ffsim.simulate_trotter_diag_coulomb_split_op(
+        vec, ham, 100.0, norb=norb, nelec=nelec, n_steps=3, order=1
+    )
+    expected = ffsim.simulate_trotter_diag_coulomb_split_op(
+        vec, double_ham, 100.0, norb=norb, nelec=nelec, n_steps=3, order=1
+    )
+
+    assert result.dtype == state_dtype
+    np.testing.assert_allclose(result, expected, rtol=0, atol=1e-12)

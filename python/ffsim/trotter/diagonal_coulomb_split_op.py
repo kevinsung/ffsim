@@ -19,7 +19,7 @@ import cmath
 import numpy as np
 import scipy.linalg
 
-from ffsim._dtype import as_complex_state_vector
+from ffsim._dtype import as_complex_state_vector, as_double_precision
 from ffsim.gates import apply_diag_coulomb_evolution, apply_orbital_rotation
 from ffsim.hamiltonians import DiagonalCoulombHamiltonian
 from ffsim.trotter._util import simulate_trotter_step_iterator
@@ -69,12 +69,13 @@ def simulate_trotter_diag_coulomb_split_op(
         return vec
 
     step_time = time / n_steps
+    one_body_tensor = as_double_precision(hamiltonian.one_body_tensor)
     current_basis = np.eye(norb, dtype=complex)
     for _ in range(n_steps):
         vec, current_basis = _simulate_trotter_step_diag_coulomb_split_op(
             vec,
             current_basis,
-            hamiltonian.one_body_tensor,
+            one_body_tensor,
             hamiltonian.diag_coulomb_mats,
             step_time,
             norb=norb,

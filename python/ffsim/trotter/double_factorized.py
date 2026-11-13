@@ -19,7 +19,7 @@ import cmath
 import numpy as np
 import scipy.linalg
 
-from ffsim._dtype import as_complex_state_vector
+from ffsim._dtype import as_complex_state_vector, as_double_precision
 from ffsim.gates import apply_diag_coulomb_evolution, apply_orbital_rotation
 from ffsim.hamiltonians import DoubleFactorizedHamiltonian
 from ffsim.trotter._util import simulate_trotter_step_iterator
@@ -69,14 +69,16 @@ def simulate_trotter_double_factorized(
         return vec
 
     step_time = time / n_steps
+    one_body_tensor = as_double_precision(hamiltonian.one_body_tensor)
+    orbital_rotations = as_double_precision(hamiltonian.orbital_rotations)
     current_basis = np.eye(norb, dtype=complex)
     for _ in range(n_steps):
         vec, current_basis = _simulate_trotter_step_double_factorized(
             vec,
             current_basis,
-            hamiltonian.one_body_tensor,
+            one_body_tensor,
             hamiltonian.diag_coulomb_mats,
-            hamiltonian.orbital_rotations,
+            orbital_rotations,
             step_time,
             norb=norb,
             nelec=nelec,

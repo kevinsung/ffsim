@@ -17,7 +17,7 @@ import itertools
 import numpy as np
 import scipy.linalg
 
-from ffsim._dtype import as_complex_state_vector
+from ffsim._dtype import as_complex_state_vector, as_double_precision
 from ffsim.gates import apply_diag_coulomb_evolution, apply_num_op_sum_evolution
 from ffsim.hamiltonians import DoubleFactorizedHamiltonian
 from ffsim.states.wick import expectation_one_body_power, expectation_one_body_product
@@ -83,9 +83,18 @@ def simulate_qdrift_double_factorized(
             return initial_state.copy()
         return np.tile(initial_state, (n_samples, 1))
 
+    one_body_tensor = as_double_precision(hamiltonian.one_body_tensor)
+    diag_coulomb_mats = as_double_precision(hamiltonian.diag_coulomb_mats)
+    orbital_rotations = as_double_precision(hamiltonian.orbital_rotations)
     if isinstance(probabilities, str):
-        probabilities = qdrift_probabilities(
-            hamiltonian, sampling_method=probabilities, nelec=nelec, one_rdm=one_rdm
+        probabilities = _qdrift_probabilities(
+            one_body_tensor,
+            diag_coulomb_mats,
+            orbital_rotations,
+            sampling_method=probabilities,
+            z_representation=hamiltonian.z_representation,
+            nelec=nelec,
+            one_rdm=one_rdm,
         )
     if symmetric:
         # in symmetric qDRIFT the one-body term is treated as a constant
@@ -93,9 +102,7 @@ def simulate_qdrift_double_factorized(
         probabilities /= sum(probabilities)
 
     rng = np.random.default_rng(seed)
-    one_body_energies, one_body_basis_change = scipy.linalg.eigh(
-        hamiltonian.one_body_tensor
-    )
+    one_body_energies, one_body_basis_change = scipy.linalg.eigh(one_body_tensor)
     step_time = time / n_steps
 
     results = np.empty(
@@ -113,8 +120,8 @@ def simulate_qdrift_double_factorized(
                 vec,
                 one_body_energies,
                 one_body_basis_change,
-                hamiltonian.diag_coulomb_mats,
-                hamiltonian.orbital_rotations,
+                diag_coulomb_mats,
+                orbital_rotations,
                 step_time,
                 z_representation=hamiltonian.z_representation,
                 norb=norb,
@@ -127,8 +134,8 @@ def simulate_qdrift_double_factorized(
                 vec,
                 one_body_energies,
                 one_body_basis_change,
-                hamiltonian.diag_coulomb_mats,
-                hamiltonian.orbital_rotations,
+                diag_coulomb_mats,
+                orbital_rotations,
                 step_time,
                 z_representation=hamiltonian.z_representation,
                 norb=norb,
@@ -251,22 +258,26 @@ def _simulate_qdrift_step_double_factorized_symmetric(
     return vec
 
 
-def qdrift_probabilities(
-    hamiltonian: DoubleFactorizedHamiltonian,
+def _qdrift_probabilities(
+    one_body_tensor: np.ndarray,
+    diag_coulomb_mats: np.ndarray,
+    orbital_rotations: np.ndarray,
     sampling_method: str,
     *,
+    z_representation: bool,
     nelec: tuple[int, int] | None = None,
     one_rdm: np.ndarray | None = None,
 ) -> np.ndarray:
     """Compute qDRIFT probabilities.
 
-    Returns a list of probabilities for qDRIFT sampling. The first probability
-    corresponds to the the one-body tensor of the Hamiltonian, and the rest
-    correspond to the two-body terms in the same order as they are stored in, e.g.,
-    ``hamiltonian.orbital_rotations``.
+    Returns an array of probabilities for qDRIFT sampling. The first probability
+    corresponds to the one-body tensor, and the rest correspond to the two-body
+    terms in the same order as ``diag_coulomb_mats`` and ``orbital_rotations``.
 
     Args:
-        hamiltonian: The Hamiltonian
+        one_body_tensor: The one-body tensor.
+        diag_coulomb_mats: The diagonal Coulomb matrices.
+        orbital_rotations: The orbital rotations for the two-body terms.
         sampling_method: The sampling method to use.
             The following options are supported:
             - "norm": Sample each term with probability proportional to its
@@ -277,13 +288,15 @@ def qdrift_probabilities(
             initial state to be specified.
             - "optimal-incoherent": Optimized probabilities for the incoherent qDRIFT
             channel.
-        n_particles: The total number of particles.
+        z_representation: Whether the diagonal Coulomb matrices are in the
+            Z representation.
+        nelec: The numbers of alpha and beta electrons.
         one_rdm: The one-body reduced density matrix of the initial state.
 
     Returns:
         The probabilities.
     """
-    n_terms = 1 + len(hamiltonian.diag_coulomb_mats)
+    n_terms = 1 + len(diag_coulomb_mats)
 
     if sampling_method == "norm":
         if nelec is None:
@@ -291,22 +304,18 @@ def qdrift_probabilities(
                 "The 'norm' sampling method requires nelec to be specified."
             )
         one_norms = np.zeros(n_terms)
-        if np.all(np.linalg.matrix_rank(hamiltonian.diag_coulomb_mats) == 1):
-            one_norms[0] = spectral_norm_one_body_tensor(
-                hamiltonian.one_body_tensor, nelec=nelec
-            )
+        if np.all(np.linalg.matrix_rank(diag_coulomb_mats) == 1):
+            one_norms[0] = spectral_norm_one_body_tensor(one_body_tensor, nelec=nelec)
         else:
             # when the diag coulomb mats have rank greater than one, only a loose
             # upper bound is used, so use a loose one for the one-body term too
             one_norms[0] = np.sum(
-                np.abs(
-                    scipy.linalg.eigh(hamiltonian.one_body_tensor, eigvals_only=True)
-                )
+                np.abs(scipy.linalg.eigh(one_body_tensor, eigvals_only=True))
             )
-        for i, diag_coulomb_mat in enumerate(hamiltonian.diag_coulomb_mats):
+        for i, diag_coulomb_mat in enumerate(diag_coulomb_mats):
             one_norms[i + 1] = spectral_norm_diag_coulomb(
                 diag_coulomb_mat,
-                z_representation=hamiltonian.z_representation,
+                z_representation=z_representation,
                 nelec=nelec,
             )
         return one_norms / np.sum(one_norms)
@@ -317,16 +326,14 @@ def qdrift_probabilities(
                 "The 'optimal' sampling method requires one_rdm to be specified."
             )
         variances = np.zeros(n_terms)
-        one_body_tensor = scipy.linalg.block_diag(
-            hamiltonian.one_body_tensor, hamiltonian.one_body_tensor
-        )
+        one_body_tensor = scipy.linalg.block_diag(one_body_tensor, one_body_tensor)
         variances[0] = variance_one_body_tensor(one_rdm, one_body_tensor)
-        for i in range(len(hamiltonian.diag_coulomb_mats)):
+        for i in range(len(diag_coulomb_mats)):
             variances[i + 1] = variance_diag_coulomb(
                 one_rdm,
-                hamiltonian.diag_coulomb_mats[i],
-                orbital_rotation=hamiltonian.orbital_rotations[i],
-                z_representation=hamiltonian.z_representation,
+                diag_coulomb_mats[i],
+                orbital_rotation=orbital_rotations[i],
+                z_representation=z_representation,
             )
         stds = np.sqrt(variances)
         return stds / np.sum(stds)
@@ -338,16 +345,14 @@ def qdrift_probabilities(
                 "specified."
             )
         variances = np.zeros(n_terms)
-        one_body_tensor = scipy.linalg.block_diag(
-            hamiltonian.one_body_tensor, hamiltonian.one_body_tensor
-        )
+        one_body_tensor = scipy.linalg.block_diag(one_body_tensor, one_body_tensor)
         variances[0] = expectation_one_body_power(one_rdm, one_body_tensor, 2).real
-        for i in range(len(hamiltonian.diag_coulomb_mats)):
+        for i in range(len(diag_coulomb_mats)):
             variances[i + 1] = expectation_squared_diag_coulomb(
                 one_rdm,
-                hamiltonian.diag_coulomb_mats[i],
-                orbital_rotation=hamiltonian.orbital_rotations[i],
-                z_representation=hamiltonian.z_representation,
+                diag_coulomb_mats[i],
+                orbital_rotation=orbital_rotations[i],
+                z_representation=z_representation,
             )
         stds = np.sqrt(variances)
         return stds / np.sum(stds)

@@ -19,7 +19,7 @@ from typing import cast, overload
 import numpy as np
 import scipy.linalg
 
-from ffsim._dtype import as_complex_state_vector
+from ffsim._dtype import as_complex_state_vector, as_double_precision
 from ffsim.gates.orbital_rotation import apply_orbital_rotation
 
 
@@ -94,7 +94,9 @@ def apply_quad_ham_evolution(
 
     if isinstance(nelec, int) or (isinstance(mat, np.ndarray) and mat.ndim == 2):
         # Spinless, or spinful with same matrix for each spin sector
-        evolution_mat = scipy.linalg.expm(-1j * time * cast(np.ndarray, mat))
+        evolution_mat = scipy.linalg.expm(
+            -1j * time * as_double_precision(cast(np.ndarray, mat))
+        )
         return apply_orbital_rotation(
             vec, evolution_mat, norb=norb, nelec=nelec, copy=False
         )
@@ -104,9 +106,9 @@ def apply_quad_ham_evolution(
     evolution_mat_a = None
     evolution_mat_b = None
     if mat_a is not None:
-        evolution_mat_a = scipy.linalg.expm(-1j * time * mat_a)
+        evolution_mat_a = scipy.linalg.expm(-1j * time * as_double_precision(mat_a))
     if mat_b is not None:
-        evolution_mat_b = scipy.linalg.expm(-1j * time * mat_b)
+        evolution_mat_b = scipy.linalg.expm(-1j * time * as_double_precision(mat_b))
     return apply_orbital_rotation(
         vec, (evolution_mat_a, evolution_mat_b), norb=norb, nelec=nelec, copy=False
     )
